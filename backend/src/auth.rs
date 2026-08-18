@@ -45,10 +45,35 @@ pub struct UserResponse {
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/api/v1/auth/setup", post(setup))
+        .route("/api/v1/auth/register", post(register))
         .route("/api/v1/auth/login", post(login))
         .route("/api/v1/auth/refresh", post(refresh))
         .route("/api/v1/auth/logout", post(logout))
         .route("/api/v1/auth/me", get(me))
+}
+
+async fn register(
+    State(s): State<AppState>,
+    Json(b): Json<Credentials>,
+) -> Result<(StatusCode, Json<Tokens>), ApiError> {
+    let email = normalize_email(&b.email).map_err(|e| ApiError::Validation(e.to_string()))?;
+    let password = b.password;
+    // Security: Registration performs expensive Argon2 hashing off the async executor, exactly like owner setup.
+    let hash = tokio::task::spawn_blocking(move || hash_password(&password))
+        .await
+        .map_err(|_| ApiError::Internal)?
+        .map_err(|e| ApiError::Validation(e.to_string()))?;
+    let display_name = email.split('@').next().map(str::to_owned);
+    // Feature: ON CONFLICT makes concurrent registration attempts deterministic without exposing a database error.
+    let id = sqlx::query_scalar::<_, Uuid>("INSERT INTO users(id,email,password_hash,display_name) VALUES($1,$2,$3,$4) ON CONFLICT(email) DO NOTHING RETURNING id")
+        .bind(Uuid::new_v4())
+        .bind(email)
+        .bind(hash)
+        .bind(display_name)
+        .fetch_optional(&s.pool)
+        .await?
+        .ok_or(ApiError::EmailTaken)?;
+    Ok((StatusCode::CREATED, Json(issue(&s, id).await?)))
 }
 
 async fn setup(

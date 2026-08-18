@@ -70,4 +70,4 @@ printf 'Stop the backend with Ctrl+C. PostgreSQL will remain available for the n
 cd -- "$BACKEND_DIR"
 
 # Feature: Exec forwards Ctrl+C directly to Axum so graceful shutdown can finish in-flight writes.
-exec cargo run
+exec cargo run --release

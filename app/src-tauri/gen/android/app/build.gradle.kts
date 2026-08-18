@@ -20,7 +20,8 @@ android {
     namespace = "com.fyxtez.weightcuttracker"
 
     defaultConfig {
-        manifestPlaceholders["usesCleartextTraffic"] = "false"
+        // Development: The Android build temporarily permits HTTP access to the backend on the local Wi-Fi network.
+        manifestPlaceholders["usesCleartextTraffic"] = "true"
         applicationId = "com.fyxtez.weightcuttracker"
         minSdk = 24
         targetSdk = 36

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { shareFile } from "@choochmeque/tauri-plugin-sharekit-api";
 import "@fontsource/manrope/400.css";
@@ -6,6 +6,7 @@ import "@fontsource/manrope/500.css";
 import "@fontsource/manrope/600.css";
 import "@fontsource/manrope/700.css";
 import "./App.css";
+import { api, type AuthUser } from "./api";
 
 type Tab = "today" | "food" | "report";
 type CategoryId = "meat" | "fish" | "salad" | "dairy" | "rare";
@@ -15,7 +16,8 @@ type FoodDefinition = Nutrition & { id: string; name: string; detail: string; ic
 type FoodSelection = { foodId: string; amount: number };
 type DayRecord = { date: string; weight: number | null; sleep: string; workout: string[]; foods: FoodSelection[]; savedAt: string };
 
-const STORAGE_KEY = "fyxtez-weight-tracker-v1";
+// Feature: A new cache namespace intentionally gives the authenticated app a clean start without importing legacy local-only records.
+const STORAGE_KEY = "fyxtez-weight-tracker-authenticated-v2";
 const SERBIA_TIME_ZONE = "Europe/Belgrade";
 // Feature: Selecting walking records a conservative baseline for later analysis without adding another manual field.
 const DEFAULT_WALKING_STEPS = 6_000;
@@ -54,7 +56,8 @@ const FOODS: FoodDefinition[] = [
   { id: "imlek-yogurt", name: "Imlek jogurt", detail: "2.8% mlečne masti", icon: "🥛", category: "dairy", unit: "ml", amounts: [200, 300, 400, 500], per: 100, kcal: 55, protein: 3.1, fat: 2.8, carbs: 4.2, fiber: 0 },
 
   // Fix: The shake remains available under Rare after removing the redundant Routine category and can still be moved to Common.
-  { id: "anabolic-shake", name: "Anabolički šejk", detail: "whey, kreatin, leucin, kakao", icon: "🥤", category: "rare", unit: "šejk", amounts: [1, 2], per: 1, kcal: 205, protein: 42.5, fat: 2, carbs: 4.5, fiber: 1.7 },
+  // Feature: Three shake portions cover unusually demanding training days without repeated manual entry.
+  { id: "anabolic-shake", name: "Anabolički šejk", detail: "whey, kreatin, leucin, kakao", icon: "🥤", category: "rare", unit: "šejk", amounts: [1, 2, 3], per: 1, kcal: 205, protein: 42.5, fat: 2, carbs: 4.5, fiber: 1.7 },
 
   // Feature: Rare foods stay available for accurate exceptional days without crowding the primary menu.
   { id: "pumpkin-seeds", name: "Bundevine semenke", detail: "orašasti i semenke", icon: "🌰", category: "rare", unit: "g", amounts: [10, 20, 30, 40], per: 100, kcal: 559, protein: 30.2, fat: 49, carbs: 10.7, fiber: 6 },
@@ -92,6 +95,36 @@ function calculateNutrition(record: DayRecord): Nutrition {
 }
 
 function App() {
+  const [user, setUser] = useState<AuthUser | null | undefined>(undefined);
+  useEffect(() => {
+    // Feature: A persisted rotating refresh session restores the account automatically after an app restart.
+    void api.restoreSession().then(setUser);
+  }, []);
+  if (user === undefined) return <main className="auth-shell"><div className="auth-mark auth-loading">W</div></main>;
+  return user ? <TrackerApp/> : <LoginScreen onLogin={setUser}/>;
+}
+
+function LoginScreen({ onLogin }: { onLogin: (user: AuthUser) => void }) {
+  const [mode, setMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  async function submit(event: FormEvent) {
+    event.preventDefault(); setError(""); setLoading(true);
+    if (mode === "register" && password !== confirmPassword) { setError("Lozinke se ne podudaraju."); setLoading(false); return; }
+    try { onLogin(mode === "login" ? await api.login(email, password) : await api.register(email, password)); } catch (reason) { setError(reason instanceof Error ? reason.message : mode === "login" ? "Prijava nije uspela." : "Nalog nije napravljen."); } finally { setLoading(false); }
+  }
+  return <main className="auth-shell"><section className="auth-card card">
+    <div className="auth-mark">W</div><span className="eyebrow">WEIGHT CUT TRACKER</span><h1>{mode === "login" ? "Dobrodošao nazad" : "Napravi nalog"}</h1><p>{mode === "login" ? "Prijavi se da bi tvoji podaci bili dostupni na telefonu i desktopu." : "Izaberi email i lozinku za sinhronizaciju svojih podataka."}</p>
+    <form onSubmit={submit}><label>Email<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required/></label><label>Lozinka<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required/></label>{mode === "register" && <label>Potvrdi lozinku<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required/></label>}{error && <div className="auth-error" role="alert">{error}</div>}<button className="primary-button" disabled={loading}>{loading ? "Molim sačekaj…" : mode === "login" ? "Prijavi se" : "Napravi nalog"}</button></form>
+    <button className="auth-mode-button" onClick={() => { setMode((current) => current === "login" ? "register" : "login"); setError(""); setConfirmPassword(""); }}>{mode === "login" ? "Nemaš nalog? Registruj se" : "Već imaš nalog? Prijavi se"}</button>
+    <small>Prijava ostaje aktivna do 30 dana.</small>
+  </section></main>;
+}
+
+function TrackerApp() {
   const [tab, setTab] = useState<Tab>("today");
   const [records, setRecords] = useState<DayRecord[]>(() => {
     // Feature: Local persistence makes the personal tracker fully usable offline inside Tauri.
@@ -121,6 +154,8 @@ function App() {
   const [showTodayFoods, setShowTodayFoods] = useState(false);
   const [showExportActions, setShowExportActions] = useState(false);
   const [showReportPreview, setShowReportPreview] = useState(false);
+  const [serverReady, setServerReady] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"loading" | "saving" | "saved" | "offline">("loading");
   const [commonFoods, setCommonFoods] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(COMMON_FOODS_KEY) ?? "[]") as string[]; } catch { return []; }
   });
@@ -130,16 +165,29 @@ function App() {
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }, [records]);
   useEffect(() => { localStorage.setItem(COMMON_FOODS_KEY, JSON.stringify(commonFoods)); }, [commonFoods]);
   useEffect(() => {
-    // Feature: Every meaningful draft change is committed immediately, removing all redundant day-save actions.
+    if (!serverReady) return;
+    // Feature: Every meaningful draft change is committed locally and remotely without a redundant save button.
     if (!autosaveReady.current) { autosaveReady.current = true; return; }
     // Fix: A freshly reset day stays out of history until the user actually enters something.
     if (!hasRecordContent(draft)) {
       setRecords((current) => current.filter((item) => item.date !== draft.date));
+      setSyncStatus("saving");
+      void api.deleteDay(draft.date).then(() => setSyncStatus("saved")).catch(() => setSyncStatus("offline"));
       return;
     }
     const saved = { ...draft, savedAt: new Date().toISOString() };
     setRecords((current) => [saved, ...current.filter((item) => item.date !== saved.date)]);
-  }, [draft]);
+    setSyncStatus("saving");
+    void api.putDay(saved.date, { weight: saved.weight, sleep: saved.sleep, workout: saved.workout, foods: saved.foods }).then(() => setSyncStatus("saved")).catch(() => setSyncStatus("offline"));
+  }, [draft, serverReady]);
+  useEffect(() => {
+    // Feature: The authenticated server is authoritative on login; the clean local cache is replaced with this user's history.
+    void api.listDays<Omit<DayRecord, "date" | "savedAt">>().then((days) => {
+      const loaded = days.map((day) => ({ ...day.payload, date: day.localDate, savedAt: day.updatedAt }));
+      setRecords(loaded); const today = loaded.find((record) => record.date === todayKey()) ?? emptyRecord(todayKey());
+      setDraft(today); setWeightInput(today.weight?.toString() ?? ""); setServerReady(true); setSyncStatus("saved");
+    }).catch(() => { setServerReady(true); setSyncStatus("offline"); });
+  }, []);
   useEffect(() => () => {
     // Fix: Pending hide timers are cleared on unmount so they cannot update a closed Tauri view.
     Object.values(hideTimers.current).forEach((timerId) => window.clearTimeout(timerId));
@@ -327,7 +375,7 @@ function App() {
   }
 
   return <main className="app-shell">
-    <header className="topbar"><div><span className="eyebrow">WEIGHT CUT TRACKER</span><h1>{tab === "today" ? "Danas" : tab === "food" ? "Hrana" : "Izveštaj"}</h1></div><div className="date-pill">{formatDate(draft.date)}</div></header>
+    <header className="topbar"><div><span className="eyebrow">WEIGHT CUT TRACKER</span><h1>{tab === "today" ? "Danas" : tab === "food" ? "Hrana" : "Izveštaj"}</h1></div>{syncStatus !== "saved" && <span className={`sync-state ${syncStatus}`}>{syncStatus === "loading" ? "Učitavanje" : syncStatus === "saving" ? "Čuvanje" : "Offline"}</span>}</header>
     <section className="content">
       {tab === "today" && <div className="screen-grid">
         <section className="card weight-card"><span className="section-label">Jutarnja težina</span><div className="weight-entry"><input aria-label="Jutarnja težina" inputMode="decimal" value={weightInput} onChange={(event) => updateWeight(event.target.value)} placeholder="104.6"/><span>kg</span></div></section>

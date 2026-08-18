@@ -13,6 +13,8 @@ pub enum ApiError {
     Forbidden,
     #[error("account setup has already been completed")]
     SetupComplete,
+    #[error("an account with this email already exists")]
+    EmailTaken,
     #[error("request could not be completed")]
     Internal,
     #[error("database request failed")]
@@ -33,6 +35,7 @@ impl IntoResponse for ApiError {
             Self::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
             Self::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
             Self::SetupComplete => (StatusCode::CONFLICT, "setup_complete"),
+            Self::EmailTaken => (StatusCode::CONFLICT, "email_taken"),
             Self::Internal => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
             Self::Database(error) => {
                 // Fix: Full database errors stay in structured logs instead of leaking credentials or SQL details to clients.
