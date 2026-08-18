@@ -1,12 +1,11 @@
 use axum::{
     Json, Router,
     extract::{Path, Query, State},
-    http::StatusCode,
+    http::{StatusCode, HeaderMap},
     routing::get,
 };
 use chrono::NaiveDate;
 use serde::Serialize;
-use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
@@ -38,9 +37,11 @@ async fn health(State(state): State<AppState>) -> Result<Json<HealthResponse>, A
 
 async fn put_day(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Path(date): Path<NaiveDate>,
     Json(payload): Json<DailyPayload>,
 ) -> Result<(StatusCode, Json<DailyRecordResponse>), ApiError> {
+    let user_id = crate::auth::authenticate(&state, &headers).await?;
     payload.validate().map_err(ApiError::Validation)?;
     let payload = serde_json::to_value(payload).expect("serializing DailyPayload cannot fail");
     // Feature: Upsert makes autosave idempotent and increments a revision usable by the later sync protocol.
@@ -57,7 +58,7 @@ async fn put_day(
         "#,
     )
     .bind(Uuid::new_v4())
-    .bind(state.dev_user_id)
+    .bind(user_id)
     .bind(date)
     .bind(payload)
     .fetch_one(&state.pool)
@@ -68,8 +69,10 @@ async fn put_day(
 
 async fn get_day(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Path(date): Path<NaiveDate>,
 ) -> Result<Json<DailyRecordResponse>, ApiError> {
+    let user_id = crate::auth::authenticate(&state, &headers).await?;
     let row = sqlx::query_as::<_, DailyRecordRow>(
         r#"
         SELECT id, local_date, payload, revision, updated_at
@@ -77,7 +80,7 @@ async fn get_day(
         WHERE user_id = $1 AND local_date = $2 AND deleted_at IS NULL
         "#,
     )
-    .bind(state.dev_user_id)
+    .bind(user_id)
     .bind(date)
     .fetch_optional(&state.pool)
     .await?
@@ -88,8 +91,10 @@ async fn get_day(
 
 async fn list_days(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Query(query): Query<ListDaysQuery>,
 ) -> Result<Json<Vec<DailyRecordResponse>>, ApiError> {
+    let user_id = crate::auth::authenticate(&state, &headers).await?;
     // Fix: A bounded limit prevents accidental unbounded history responses during curl and future mobile sync tests.
     let limit = query.limit.unwrap_or(30).clamp(1, 366);
     let rows = sqlx::query_as::<_, DailyRecordRow>(
@@ -104,7 +109,7 @@ async fn list_days(
         LIMIT $4
         "#,
     )
-    .bind(state.dev_user_id)
+    .bind(user_id)
     .bind(query.from)
     .bind(query.to)
     .bind(limit)
@@ -116,8 +121,10 @@ async fn list_days(
 
 async fn delete_day(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Path(date): Path<NaiveDate>,
 ) -> Result<StatusCode, ApiError> {
+    let user_id = crate::auth::authenticate(&state, &headers).await?;
     // Feature: Soft deletion leaves a tombstone so another device cannot restore a record removed during synchronization.
     let result = sqlx::query(
         r#"
@@ -126,7 +133,7 @@ async fn delete_day(
         WHERE user_id = $1 AND local_date = $2 AND deleted_at IS NULL
         "#,
     )
-    .bind(state.dev_user_id)
+    .bind(user_id)
     .bind(date)
     .execute(&state.pool)
     .await?;
@@ -135,20 +142,4 @@ async fn delete_day(
         return Err(ApiError::NotFound);
     }
     Ok(StatusCode::NO_CONTENT)
-}
-
-pub async fn ensure_dev_user(pool: &PgPool, id: Uuid, email: &str) -> Result<(), sqlx::Error> {
-    // Feature: A deterministic development account lets curl exercise user-scoped storage before Google OAuth exists.
-    sqlx::query(
-        r#"
-        INSERT INTO users (id, email, display_name)
-        VALUES ($1, $2, 'Local development user')
-        ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email, updated_at = NOW()
-        "#,
-    )
-    .bind(id)
-    .bind(email)
-    .execute(pool)
-    .await?;
-    Ok(())
 }

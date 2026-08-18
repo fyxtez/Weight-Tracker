@@ -7,6 +7,14 @@ pub enum ApiError {
     Validation(String),
     #[error("record not found")]
     NotFound,
+    #[error("invalid email or password")]
+    Unauthorized,
+    #[error("access denied")]
+    Forbidden,
+    #[error("account setup has already been completed")]
+    SetupComplete,
+    #[error("request could not be completed")]
+    Internal,
     #[error("database request failed")]
     Database(#[from] sqlx::Error),
 }
@@ -22,6 +30,10 @@ impl IntoResponse for ApiError {
         let (status, code) = match &self {
             Self::Validation(_) => (StatusCode::UNPROCESSABLE_ENTITY, "validation_error"),
             Self::NotFound => (StatusCode::NOT_FOUND, "not_found"),
+            Self::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized"),
+            Self::Forbidden => (StatusCode::FORBIDDEN, "forbidden"),
+            Self::SetupComplete => (StatusCode::CONFLICT, "setup_complete"),
+            Self::Internal => (StatusCode::INTERNAL_SERVER_ERROR, "internal_error"),
             Self::Database(error) => {
                 // Fix: Full database errors stay in structured logs instead of leaking credentials or SQL details to clients.
                 tracing::error!(%error, "database request failed");

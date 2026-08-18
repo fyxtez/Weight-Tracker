@@ -60,6 +60,8 @@ pub struct DailyRecordRow {
 }
 
 #[derive(Debug, Serialize)]
+// Feature: Rust keeps idiomatic snake_case fields while the public API consistently emits camelCase for TypeScript clients.
+#[serde(rename_all = "camelCase")]
 pub struct DailyRecordResponse {
     pub id: Uuid,
     pub local_date: NaiveDate,

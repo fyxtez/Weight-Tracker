@@ -1,0 +1,13 @@
+[package]
+name = "weight-tracker-auth"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+argon2 = "0.5.3"
+base64 = "0.22"
+email_address = "0.2"
+sha2 = "0.10"
+subtle = "2"
+thiserror = "2"
+rand_core = { version = "0.6.4", features = ["getrandom"] }

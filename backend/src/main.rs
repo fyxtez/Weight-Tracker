@@ -1,3 +1,4 @@
+mod auth;
 mod config;
 mod error;
 mod models;
@@ -11,13 +12,16 @@ use sqlx::{PgPool, postgres::PgPoolOptions};
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use tracing::info;
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
-use uuid::Uuid;
+use secrecy::SecretString;
+use axum::{middleware, extract::DefaultBodyLimit};
+use weight_tracker_http_middleware::{MAX_REQUEST_BYTES, security_headers};
 
 #[derive(Clone)]
 struct AppState {
     pool: PgPool,
-    // Feature: Route state isolates temporary development identity so Google auth can later replace it with a request extractor.
-    dev_user_id: Uuid,
+    setup_token: SecretString,
+    access_token_minutes: i64,
+    refresh_token_days: i64,
 }
 
 #[tokio::main]
@@ -37,11 +41,12 @@ async fn main() -> Result<()> {
         .run(&pool)
         .await
         .context("failed to run database migrations")?;
-    routes::ensure_dev_user(&pool, config.dev_user_id, &config.dev_user_email).await?;
-
-    let state = AppState { pool, dev_user_id: config.dev_user_id };
-    let app = routes::router()
+    let state = AppState { pool, setup_token: config.setup_token, access_token_minutes: config.access_token_minutes, refresh_token_days: config.refresh_token_days };
+    let app = routes::router().merge(auth::router())
         .with_state(state)
+        // Security: Bound request bodies and add defensive headers consistently across every route.
+        .layer(DefaultBodyLimit::max(MAX_REQUEST_BYTES))
+        .layer(middleware::from_fn(security_headers))
         // Security: Permissive CORS exists only while Config rejects every non-development environment.
         .layer(CorsLayer::permissive())
         .layer(TraceLayer::new_for_http());
