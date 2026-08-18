@@ -1,0 +1,21 @@
+services:
+  postgres:
+    # Feature: PostgreSQL runs reproducibly without requiring a host database installation.
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: weight_tracker
+      POSTGRES_USER: weight_tracker
+      POSTGRES_PASSWORD: weight_tracker
+    ports:
+      - "5434:5432"
+    volumes:
+      - weight_tracker_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weight_tracker -d weight_tracker"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  # Feature: A named volume keeps test records across container restarts.
+  weight_tracker_postgres:

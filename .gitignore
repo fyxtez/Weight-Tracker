@@ -1,0 +1,27 @@
+# Frontend
+node_modules/
+dist/
+
+# Rust and Tauri
+target/
+app/src-tauri/target/
+app/src-tauri/gen/android/.gradle/
+app/src-tauri/gen/android/app/build/
+
+# Environment and signing secrets
+.env
+.env.*
+!.env.example
+keystore.properties
+*.jks
+*.keystore
+
+# Local archives and scripts
+*.zip
+*.tar.gz
+zip.sh
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
