@@ -99,8 +99,23 @@ button { color: inherit; border: 0; cursor: pointer; }
 .food-card { padding: 16px; }
 .hidden-food-toggle { justify-self: end; min-height: 38px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 11px; font-weight: 700; }
 .hidden-food-toggle:hover, .hidden-food-toggle.active { color: #17120a; background: var(--accent-light); border-color: var(--accent-light); }
-.hide-progress { height: 3px; margin: 13px 2px -5px; background: var(--accent); border-radius: 999px; transform-origin: right center; animation: hide-countdown 5s linear forwards; }
-/* Feature: The bar disappears from left to right during the five-second correction window. */
+.hidden-food-section { display: grid; gap: 12px; padding-top: 4px; }
+/* Feature: Hidden foods live in a visually separate tray, so revealing them never disturbs the active category list. */
+.hidden-food-panel { display: grid; gap: 14px; padding: 15px; border: 1px solid #35312a; border-radius: 18px; background: linear-gradient(145deg,#13120f,#0c0c0b); animation: hidden-tray-enter .24s both cubic-bezier(.2,.8,.2,1); }
+.hidden-food-heading { display: grid; gap: 3px; padding: 0 2px 3px; }
+.hidden-food-heading strong { font-size: 15px; }
+@keyframes hidden-tray-enter { from { opacity: 0; transform: translateY(-8px); } }
+.daily-entry-card { position: relative; overflow: hidden; }
+/* Feature: Completed weight and sleep values collapse into compact, explicitly editable rows after their grace period. */
+.completed-daily-field { display: flex; min-height: 78px; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 17px; }
+.completed-daily-field > div { display: grid; min-width: 0; gap: 4px; }
+.completed-daily-field span { color: var(--text-secondary); font-size: 12px; }
+.completed-daily-field strong { overflow: hidden; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.completed-daily-field button { min-height: 38px; padding: 0 14px; color: #17120a; background: var(--accent); border-radius: 11px; font-size: 12px; font-weight: 800; }
+.completed-daily-field button:hover { background: var(--accent-light); }
+.daily-hide-progress { margin-right: 0; margin-left: 0; }
+.hide-progress { height: 3px; margin: 13px 2px -5px; background: var(--accent); border-radius: 999px; transform-origin: right center; animation: hide-countdown 7s linear forwards; }
+/* Feature: The bar disappears from left to right during the shared seven-second correction window. */
 @keyframes hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 .food-title { display: flex; align-items: center; gap: 12px; }
 .food-copy { min-width: 0; flex: 1; }

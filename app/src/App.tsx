@@ -15,6 +15,7 @@ type Nutrition = { kcal: number; protein: number; fat: number; carbs: number; fi
 type FoodDefinition = Nutrition & { id: string; name: string; detail: string; icon: string; category: CategoryId; unit: "g" | "ml" | "kom" | "šejk"; amounts: number[]; per: number };
 type FoodSelection = { foodId: string; amount: number };
 type DayRecord = { date: string; weight: number | null; sleep: string; workout: string[]; foods: FoodSelection[]; savedAt: string };
+type OneTimeField = "weight" | "sleep";
 
 // Feature: A new cache namespace intentionally gives the authenticated app a clean start without importing legacy local-only records.
 const STORAGE_KEY = "fyxtez-weight-tracker-authenticated-v2";
@@ -23,6 +24,8 @@ const SERBIA_TIME_ZONE = "Europe/Belgrade";
 const DEFAULT_WALKING_STEPS = 6_000;
 // Fix: Keep the old storage key so existing pins migrate into Common without losing the user's choices.
 const COMMON_FOODS_KEY = "fyxtez-weight-tracker-pinned-foods-v1";
+// Feature: Seven seconds leaves a calmer correction window before completed one-time inputs and foods collapse.
+const AUTO_HIDE_DELAY_MS = 7_000;
 
 // Feature: Primary categories use larger radial controls while infrequent foods stay behind a smaller Rare entry.
 const CATEGORIES: Array<{ id: CategoryId; name: string; icon: string; rare?: boolean }> = [
@@ -154,6 +157,8 @@ function TrackerApp() {
   const [showTodayFoods, setShowTodayFoods] = useState(false);
   const [showExportActions, setShowExportActions] = useState(false);
   const [showReportPreview, setShowReportPreview] = useState(false);
+  const [collapsedOneTimeFields, setCollapsedOneTimeFields] = useState<Record<OneTimeField, boolean>>({ weight: draft.weight !== null, sleep: Boolean(draft.sleep) });
+  const [oneTimeCountdowns, setOneTimeCountdowns] = useState<Record<OneTimeField, number>>({ weight: 0, sleep: 0 });
   const [serverReady, setServerReady] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"loading" | "saving" | "saved" | "offline">("loading");
   const [commonFoods, setCommonFoods] = useState<string[]>(() => {
@@ -161,6 +166,7 @@ function TrackerApp() {
   });
   const autosaveReady = useRef(false);
   const hideTimers = useRef<Record<string, number>>({});
+  const oneTimeTimers = useRef<Partial<Record<OneTimeField, number>>>({});
 
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(records)); }, [records]);
   useEffect(() => { localStorage.setItem(COMMON_FOODS_KEY, JSON.stringify(commonFoods)); }, [commonFoods]);
@@ -185,12 +191,17 @@ function TrackerApp() {
     void api.listDays<Omit<DayRecord, "date" | "savedAt">>().then((days) => {
       const loaded = days.map((day) => ({ ...day.payload, date: day.localDate, savedAt: day.updatedAt }));
       setRecords(loaded); const today = loaded.find((record) => record.date === todayKey()) ?? emptyRecord(todayKey());
-      setDraft(today); setWeightInput(today.weight?.toString() ?? ""); setServerReady(true); setSyncStatus("saved");
+      setDraft(today); setWeightInput(today.weight?.toString() ?? "");
+      // Feature: Already completed morning fields load in their compact state instead of occupying the whole Today screen again.
+      setCollapsedOneTimeFields({ weight: today.weight !== null, sleep: Boolean(today.sleep) });
+      setOneTimeCountdowns({ weight: 0, sleep: 0 });
+      setServerReady(true); setSyncStatus("saved");
     }).catch(() => { setServerReady(true); setSyncStatus("offline"); });
   }, []);
   useEffect(() => () => {
     // Fix: Pending hide timers are cleared on unmount so they cannot update a closed Tauri view.
     Object.values(hideTimers.current).forEach((timerId) => window.clearTimeout(timerId));
+    Object.values(oneTimeTimers.current).forEach((timerId) => window.clearTimeout(timerId));
   }, []);
   useEffect(() => {
     if (!showExportActions) return;
@@ -217,7 +228,11 @@ function TrackerApp() {
         const next = storedRecords.find((record) => record.date === currentDate) ?? emptyRecord(currentDate);
         Object.values(hideTimers.current).forEach((timerId) => window.clearTimeout(timerId));
         hideTimers.current = {};
+        Object.values(oneTimeTimers.current).forEach((timerId) => window.clearTimeout(timerId));
+        oneTimeTimers.current = {};
         setWeightInput(next.weight?.toString() ?? "");
+        setCollapsedOneTimeFields({ weight: next.weight !== null, sleep: Boolean(next.sleep) });
+        setOneTimeCountdowns({ weight: 0, sleep: 0 });
         setSelectedCategory(null);
         setPendingHideFoods([]);
         setHiddenFoods(next.foods.filter((food) => food.foodId !== "anabolic-shake").map((food) => food.foodId));
@@ -252,19 +267,56 @@ function TrackerApp() {
       : selectedCategory
         ? FOODS.filter((food) => food.category === selectedCategory && !commonFoods.includes(food.id))
         : [];
-    // Feature: Completed foods disappear from normal category browsing but remain recoverable through the explicit reveal control.
-    return showHiddenFoods ? categoryItems : categoryItems.filter((food) => !hiddenFoods.includes(food.id));
-  }, [commonFoods, hiddenFoods, selectedCategory, showHiddenFoods]);
+    // Fix: The primary category list never changes order when hidden foods are revealed in their dedicated section.
+    return categoryItems.filter((food) => !hiddenFoods.includes(food.id));
+  }, [commonFoods, hiddenFoods, selectedCategory]);
+  const hiddenCategoryFoods = useMemo(() => {
+    const categoryItems = selectedCategory === "common"
+      ? FOODS.filter((food) => commonFoods.includes(food.id))
+      : selectedCategory
+        ? FOODS.filter((food) => food.category === selectedCategory && !commonFoods.includes(food.id))
+        : [];
+    return categoryItems.filter((food) => hiddenFoods.includes(food.id));
+  }, [commonFoods, hiddenFoods, selectedCategory]);
 
   function flash(message: string) { setNotice(message); window.setTimeout(() => setNotice(""), 2200); }
+
+  function scheduleOneTimeHide(field: OneTimeField) {
+    if (oneTimeTimers.current[field]) window.clearTimeout(oneTimeTimers.current[field]);
+    setCollapsedOneTimeFields((current) => ({ ...current, [field]: false }));
+    // Feature: Incrementing the countdown key restarts the visual bar when a value is corrected during its grace period.
+    setOneTimeCountdowns((current) => ({ ...current, [field]: current[field] + 1 }));
+    oneTimeTimers.current[field] = window.setTimeout(() => {
+      setCollapsedOneTimeFields((current) => ({ ...current, [field]: true }));
+      setOneTimeCountdowns((current) => ({ ...current, [field]: 0 }));
+      delete oneTimeTimers.current[field];
+    }, AUTO_HIDE_DELAY_MS);
+  }
+
+  function revealOneTimeField(field: OneTimeField) {
+    // Feature: Compact completed values remain editable through an explicit reveal action.
+    if (oneTimeTimers.current[field]) window.clearTimeout(oneTimeTimers.current[field]);
+    delete oneTimeTimers.current[field];
+    setOneTimeCountdowns((current) => ({ ...current, [field]: 0 }));
+    setCollapsedOneTimeFields((current) => ({ ...current, [field]: false }));
+  }
 
   function updateWeight(value: string) {
     setWeightInput(value);
     // Feature: Clearing the field also clears the saved weight instead of silently retaining the previous value.
-    if (!value.trim()) { setDraft((current) => ({ ...current, weight: null })); return; }
+    if (!value.trim()) { setDraft((current) => ({ ...current, weight: null })); revealOneTimeField("weight"); return; }
     const weight = Number(value.replace(",", "."));
     // Feature: A complete valid weight autosaves while partial typing remains editable without corrupting the record.
-    if (Number.isFinite(weight) && weight >= 40 && weight <= 250) setDraft((current) => ({ ...current, weight: round(weight, 1) }));
+    if (Number.isFinite(weight) && weight >= 40 && weight <= 250) {
+      setDraft((current) => ({ ...current, weight: round(weight, 1) }));
+      scheduleOneTimeHide("weight");
+    }
+  }
+
+  function updateSleep(sleep: string) {
+    // Feature: Sleep is a once-per-day value, so selection autosaves and then collapses after the shared grace period.
+    setDraft((current) => ({ ...current, sleep }));
+    scheduleOneTimeHide("sleep");
   }
 
   function selectFood(foodId: string, amount: number) {
@@ -288,12 +340,12 @@ function TrackerApp() {
 
     setHiddenFoods((current) => current.filter((id) => id !== foodId));
     setPendingHideFoods((current) => [...current.filter((id) => id !== foodId), foodId]);
-    // Feature: A five-second undo window keeps accidental portion taps visible before the card is hidden.
+    // Feature: A seven-second undo window keeps accidental portion taps visible before the card is hidden.
     hideTimers.current[foodId] = window.setTimeout(() => {
       setPendingHideFoods((current) => current.filter((id) => id !== foodId));
       setHiddenFoods((current) => current.includes(foodId) ? current : [...current, foodId]);
       delete hideTimers.current[foodId];
-    }, 5_000);
+    }, AUTO_HIDE_DELAY_MS);
   }
 
   function toggleWorkout(workout: string) {
@@ -314,6 +366,7 @@ function TrackerApp() {
   function openFoodCategory(category: FoodView) {
     // Feature: A lightweight browser-history entry lets Android WebView translate its native Back action into in-app navigation.
     window.history.pushState({ ...window.history.state, weightTrackerLayer: "food-category" }, "");
+    setShowHiddenFoods(false);
     setSelectedCategory(category);
   }
 
@@ -378,20 +431,24 @@ function TrackerApp() {
     <header className="topbar"><div><span className="eyebrow">WEIGHT CUT TRACKER</span><h1>{tab === "today" ? "Danas" : tab === "food" ? "Hrana" : "Izveštaj"}</h1></div>{syncStatus !== "saved" && <span className={`sync-state ${syncStatus}`}>{syncStatus === "loading" ? "Učitavanje" : syncStatus === "saving" ? "Čuvanje" : "Offline"}</span>}</header>
     <section className="content">
       {tab === "today" && <div className="screen-grid">
-        <section className="card weight-card"><span className="section-label">Jutarnja težina</span><div className="weight-entry"><input aria-label="Jutarnja težina" inputMode="decimal" value={weightInput} onChange={(event) => updateWeight(event.target.value)} placeholder="104.6"/><span>kg</span></div></section>
-        <section className="card compact-card"><span className="section-label">San protekle noći</span><div className="chip-row">{["<6h", "6h", "7h", "8h+"].map((sleep) => <button key={sleep} className={`chip ${draft.sleep === sleep ? "selected" : ""}`} onClick={() => setDraft((current) => ({ ...current, sleep }))}>{sleep}</button>)}</div></section>
-        <section className="card compact-card"><div className="section-heading"><span className="section-label">Trening juče</span><span className="helper-inline">izaberi više</span></div><div className="chip-row workout-row">{["Šetnja", "Ramena", "Trapezius", "Grudi", "Leđa", "Biceps", "Triceps", "Podlaktica", "Stomak", "Noge", "Gluteus"].map((workout) => <button key={workout} className={`chip ${draft.workout.includes(workout) ? "selected" : ""}`} onClick={() => toggleWorkout(workout)}>{workout}</button>)}</div></section>
+        {collapsedOneTimeFields.weight ? <CompletedDailyField label="Jutarnja težina" value={`${draft.weight?.toFixed(1) ?? "—"} kg`} onEdit={() => revealOneTimeField("weight")}/> : <section className="card weight-card daily-entry-card"><span className="section-label">Jutarnja težina</span><div className="weight-entry"><input aria-label="Jutarnja težina" inputMode="decimal" value={weightInput} onChange={(event) => updateWeight(event.target.value)} placeholder="104.6"/><span>kg</span></div>{oneTimeCountdowns.weight > 0 && <div key={`weight-${oneTimeCountdowns.weight}`} className="hide-progress daily-hide-progress" aria-label="Jutarnja težina će se sklopiti za sedam sekundi"/>}</section>}
+        {collapsedOneTimeFields.sleep ? <CompletedDailyField label="San protekle noći" value={draft.sleep || "—"} onEdit={() => revealOneTimeField("sleep")}/> : <section className="card compact-card daily-entry-card"><span className="section-label">San protekle noći</span><div className="chip-row">{["<6h", "6h", "7h", "8h+"].map((sleep) => <button key={sleep} className={`chip ${draft.sleep === sleep ? "selected" : ""}`} onClick={() => updateSleep(sleep)}>{sleep}</button>)}</div>{oneTimeCountdowns.sleep > 0 && <div key={`sleep-${oneTimeCountdowns.sleep}`} className="hide-progress daily-hide-progress" aria-label="San protekle noći će se sklopiti za sedam sekundi"/>}</section>}
+        {/* Fix: Workouts belong to the current day and remain open because multiple sessions can be recorded throughout it. */}
+        <section className="card compact-card"><div className="section-heading"><span className="section-label">Trening danas</span><span className="helper-inline">izaberi više</span></div><div className="chip-row workout-row">{["Šetnja", "Ramena", "Trapezius", "Grudi", "Leđa", "Biceps", "Triceps", "Podlaktica", "Stomak", "Noge", "Gluteus"].map((workout) => <button key={workout} className={`chip ${draft.workout.includes(workout) ? "selected" : ""}`} onClick={() => toggleWorkout(workout)}>{workout}</button>)}</div></section>
         <section className="card summary-card"><div className="card-heading"><span className="section-label">Sažetak danas</span><button className="text-button" onClick={() => setTab("food")}>Dodaj hranu →</button></div><div className="stats-grid"><Stat label="Namirnice" value={draft.foods.length.toString()} suffix="stavki"/><Stat label="Kalorije" value={round(nutrition.kcal).toLocaleString("sr-RS")} suffix="kcal"/><Stat label="Protein" value={round(nutrition.protein).toString()} suffix="g"/></div></section>
       </div>}
       {tab === "food" && <div className="food-screen">
-        {/* Fix: The reveal action belongs inside a food list and no longer clutters the main radial category menu. */}
-        {selectedCategory !== null && hiddenFoods.length > 0 && <button className={`hidden-food-toggle ${showHiddenFoods ? "active" : ""}`} onClick={() => setShowHiddenFoods((current) => !current)}>{showHiddenFoods ? "Sakrij izabrane" : `Prikaži skrivene (${hiddenFoods.length})`}</button>}
         {selectedCategory === null ? <>
           {/* Fix: The wheel is self-explanatory, so redundant category labels were removed to keep the food screen compact. */}
           <section className="category-section"><CategoryWheel onSelect={openFoodCategory}/></section>
         </> : <>
           <div className="category-header"><button className="back-button" onClick={closeFoodCategory}>← Kategorije</button><div><span className="eyebrow">OTVORENO</span><h2>{selectedCategory === "common" ? "Osnovno" : CATEGORIES.find((category) => category.id === selectedCategory)?.name}</h2></div></div>
           {categoryFoods.length > 0 ? <div className="food-list">{categoryFoods.map((food) => <FoodCard key={food.id} food={food} selectedAmount={draft.foods.find((item) => item.foodId === food.id)?.amount} common={commonFoods.includes(food.id)} pendingHide={pendingHideFoods.includes(food.id)} onSelect={selectFood} onCommon={toggleCommonFood}/>)}</div> : <div className="card common-empty">{selectedCategory === "common" && commonFoods.length === 0 ? "Označi zvezdicom namirnice koje želiš u Osnovno." : "U ovoj kategoriji nema vidljivih namirnica."}</div>}
+          {/* Feature: Completed foods open below the active list in a dedicated section, preserving the original category order. */}
+          {hiddenCategoryFoods.length > 0 && <section className={`hidden-food-section ${showHiddenFoods ? "open" : ""}`}>
+            <button className={`hidden-food-toggle ${showHiddenFoods ? "active" : ""}`} onClick={() => setShowHiddenFoods((current) => !current)} aria-expanded={showHiddenFoods}>{showHiddenFoods ? "Sakrij završene" : `Prikaži skrivene (${hiddenCategoryFoods.length})`}</button>
+            {showHiddenFoods && <div className="hidden-food-panel"><div className="hidden-food-heading"><span className="eyebrow">SKRIVENO DANAS</span><strong>Već unete namirnice</strong></div><div className="food-list">{hiddenCategoryFoods.map((food) => <FoodCard key={food.id} food={food} selectedAmount={draft.foods.find((item) => item.foodId === food.id)?.amount} common={commonFoods.includes(food.id)} pendingHide={false} onSelect={selectFood} onCommon={toggleCommonFood}/>)}</div></div>}
+          </section>}
         </>}
         <div className="food-totals"><strong>{round(nutrition.kcal).toLocaleString("sr-RS")} kcal</strong><span>{round(nutrition.protein)} g proteina</span></div>
         {/* Feature: An expandable daily-food receipt confirms every autosaved choice without crowding the category flow. */}
@@ -432,6 +489,10 @@ function TrackerApp() {
 
 function Stat({ label, value, suffix }: { label: string; value: string; suffix: string }) { return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{suffix}</small></div>; }
 function StatCard({ label, value, suffix, positive = false }: { label: string; value: string; suffix: string; positive?: boolean }) { return <div className="card stat-card"><span>{label}</span><div className={positive ? "positive" : ""}><strong>{value}</strong><small>{suffix}</small></div></div>; }
+function CompletedDailyField({ label, value, onEdit }: { label: string; value: string; onEdit: () => void }) {
+  // Feature: A compact completed row keeps the value visible while returning most of the Today screen to active tasks.
+  return <section className="card completed-daily-field"><div><span>{label}</span><strong>{value}</strong></div><button onClick={onEdit}>Izmeni</button></section>;
+}
 function NavButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: string; onClick: () => void }) { return <button className={active ? "active" : ""} onClick={onClick}><span aria-hidden="true">{icon}</span>{label}</button>; }
 
 function FoodCard({ food, selectedAmount, common, pendingHide, onSelect, onCommon }: { food: FoodDefinition; selectedAmount?: number; common: boolean; pendingHide: boolean; onSelect: (foodId: string, amount: number) => void; onCommon: (foodId: string) => void }) {
@@ -440,7 +501,7 @@ function FoodCard({ food, selectedAmount, common, pendingHide, onSelect, onCommo
     <div className="food-title"><div className="food-icon"><FoodIcon food={food}/></div><div className="food-copy"><h2>{food.name}</h2><p>{food.detail}</p></div><button className={`common-button ${common ? "active" : ""}`} onClick={() => onCommon(food.id)} aria-label={common ? `Vrati ${food.name} u originalnu kategoriju` : `Premesti ${food.name} u Osnovno`} title={common ? "Vrati u originalnu kategoriju" : "Premesti u Osnovno"}>★</button></div>
     {/* Fix: Shake quantity buttons show only 1/2 because the card title already communicates the unit. */}
     <div className="amount-grid">{food.amounts.map((amount) => <button key={amount} className={`chip amount-chip ${selectedAmount === amount ? "selected" : ""}`} onClick={() => onSelect(food.id, amount)}>{amount}{food.unit === "šejk" ? "" : ` ${food.unit}`}</button>)}</div>
-    {pendingHide && <div className="hide-progress" aria-label="Namirnica će se sakriti za pet sekundi"/>}
+    {pendingHide && <div className="hide-progress" aria-label="Namirnica će se sakriti za sedam sekundi"/>}
   </section>;
 }
 
