@@ -1,0 +1,36 @@
+.weight-card { padding: 20px; }
+.section-label { color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+.weight-entry { display: flex; align-items: baseline; justify-content: center; margin: 8px 0 18px; }
+.weight-entry input { width: 210px; padding: 0; color: var(--text); background: transparent; border: 0; outline: 0; text-align: center; font-size: clamp(58px,18vw,84px); font-weight: 500; letter-spacing: -.06em; }
+.weight-entry input::placeholder { color: #33332f; }
+.weight-entry span { color: var(--text-secondary); font-size: 20px; }
+.primary-button { width: 100%; min-height: 54px; border-radius: 13px; font-weight: 700; transition: transform .15s ease, background .15s ease; }
+.primary-button { color: #17120a; background: var(--accent); }
+.primary-button:hover { background: var(--accent-light); }
+.primary-button:active { transform: scale(.985); }
+.compact-card { padding: 17px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.helper-inline { color: var(--text-muted); font-size: 10px; }
+.chip-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
+.workout-row { grid-template-columns: repeat(3,1fr); }
+.chip { min-height: 42px; padding: 8px 10px; color: var(--text-secondary); background: #151515; border: 1px solid #3a3a36; border-radius: 11px; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+.chip:hover { color: var(--text); border-color: #64645e; }
+.chip.selected { color: #17120a; background: var(--accent); border-color: var(--accent); font-weight: 700; }
+.chip.selected { animation: selected-pop .22s cubic-bezier(.2,.9,.3,1.25); }
+@keyframes selected-pop { 50% { transform: scale(1.045); } }
+.summary-card { padding: 18px; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.text-button { padding: 4px 0; color: var(--accent); background: transparent; font-size: 13px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); margin: 18px 0; }
+.daily-entry-card { position: relative; overflow: hidden; }
+/* Feature: Completed weight and sleep values collapse into compact, explicitly editable rows after their grace period. */
+.completed-daily-field { display: flex; min-height: 78px; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 17px; }
+.completed-daily-field > div { display: grid; min-width: 0; gap: 4px; }
+.completed-daily-field span { color: var(--text-secondary); font-size: 12px; }
+.completed-daily-field strong { overflow: hidden; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.completed-daily-field button { min-height: 38px; padding: 0 14px; color: #17120a; background: var(--accent); border-radius: 11px; font-size: 12px; font-weight: 800; }
+.completed-daily-field button:hover { background: var(--accent-light); }
+.daily-hide-progress { margin-right: 0; margin-left: 0; }
+.hide-progress { height: 3px; margin: 13px 2px -5px; background: var(--accent); border-radius: 999px; transform-origin: right center; animation: hide-countdown 7s linear forwards; }
+/* Feature: The bar disappears from left to right during the shared seven-second correction window. */
+@keyframes hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }

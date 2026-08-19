@@ -1,0 +1,7 @@
+.completed-daily-field { display: flex; min-height: 78px; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 17px; }
+.completed-daily-field > div { display: grid; min-width: 0; gap: 4px; }
+.completed-daily-field span { color: var(--text-secondary); font-size: 12px; }
+.completed-daily-field strong { overflow: hidden; font-size: 20px; text-overflow: ellipsis; white-space: nowrap; }
+.completed-daily-field button { min-height: 38px; padding: 0 14px; color: #17120a; background: var(--accent); border-radius: 11px; font-size: 12px; font-weight: 800; }
+.completed-daily-field button:hover { background: var(--accent-light); }
+.daily-hide-progress { margin-right: 0; margin-left: 0; }

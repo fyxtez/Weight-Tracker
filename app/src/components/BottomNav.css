@@ -1,0 +1,5 @@
+.bottom-nav { position: fixed; left: 50%; bottom: 0; z-index: 10; width: min(100%,760px); display: grid; grid-template-columns: repeat(3,1fr); transform: translateX(-50%); padding: 9px max(18px,env(safe-area-inset-right)) calc(9px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left)); background: rgba(12,12,12,.95); border-top: 1px solid #292927; backdrop-filter: blur(20px); }
+.bottom-nav button { display: grid; gap: 2px; place-items: center; min-height: 55px; color: var(--text-muted); background: transparent; border-radius: 12px; font-size: 11px; }
+.bottom-nav button span { font-size: 24px; line-height: 1; }
+.bottom-nav button:hover { color: var(--text-secondary); background: #161614; }
+.bottom-nav button.active { color: var(--accent); }

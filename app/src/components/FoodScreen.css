@@ -1,0 +1,39 @@
+.food-screen { display: grid; gap: 12px; }
+.category-section { display: grid; gap: 12px; }
+.food-section-heading, .category-header { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 6px 4px; }
+.food-section-heading h2, .category-header h2 { margin: 2px 0 0; font-size: 21px; }
+.back-button { min-height: 40px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 12px; font-weight: 700; }
+.back-button:hover { color: #17120a; background: var(--accent-light); border-color: var(--accent-light); }
+.food-card { padding: 16px; }
+.hidden-food-toggle { justify-self: end; min-height: 38px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 11px; font-weight: 700; }
+.hidden-food-toggle:hover, .hidden-food-toggle.active { color: #17120a; background: var(--accent-light); border-color: var(--accent-light); }
+.hidden-food-section { display: grid; gap: 12px; padding-top: 4px; }
+/* Feature: Hidden foods live in a visually separate tray, so revealing them never disturbs the active category list. */
+.hidden-food-panel { display: grid; gap: 14px; padding: 15px; border: 1px solid #35312a; border-radius: 18px; background: linear-gradient(145deg,#13120f,#0c0c0b); animation: hidden-tray-enter .24s both cubic-bezier(.2,.8,.2,1); }
+.hidden-food-heading { display: grid; gap: 3px; padding: 0 2px 3px; }
+.hidden-food-heading strong { font-size: 15px; }
+@keyframes hidden-tray-enter { from { opacity: 0; transform: translateY(-8px); } }
+.common-empty { padding: 28px 20px; color: var(--text-muted); text-align: center; font-size: 13px; }
+.amount-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(66px,1fr)); gap: 8px; margin-top: 14px; }
+.amount-chip { min-width: 0; }
+/* Fix: The save panel stays in document flow so it can never cover the optional note controls above it. */
+/* Fix: Nutrition totals remain visible without presenting a redundant save action in the autosaved food flow. */
+.food-totals { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 16px; background: rgba(10,10,10,.92); border: 1px solid var(--border); border-radius: 16px; }
+.food-totals strong { font-size: 16px; }
+.food-totals span { color: var(--text-muted); font-size: 11px; }
+.today-foods { overflow: hidden; }
+.today-foods-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 15px 16px; text-align: left; background: transparent; }
+.today-foods-trigger div { display: grid; gap: 3px; }
+.today-foods-trigger span { color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: .14em; }
+.today-foods-trigger strong { font-size: 14px; }
+.today-foods-trigger b { color: var(--text-secondary); font-size: 22px; font-weight: 400; transition: transform .22s ease, color .22s ease; }
+.today-foods.open .today-foods-trigger b { color: var(--accent); transform: rotate(180deg); }
+.today-foods-reveal { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .28s ease; }
+.today-foods.open .today-foods-reveal { grid-template-rows: 1fr; }
+.today-foods-list { min-height: 0; overflow: hidden; }
+.today-food-row { display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 10px; margin: 0 14px; padding: 10px 2px; border-top: 1px solid #262624; animation: row-in .25s both ease-out; }
+.today-food-row strong { min-width: 0; font-size: 13px; }
+.today-food-row > span:last-child { color: var(--accent-light); font-size: 12px; font-weight: 700; }
+.today-food-icon { display: grid; width: 32px; height: 32px; place-items: center; background: #1c1b18; border-radius: 9px; font-size: 18px; }
+.today-food-icon .food-svg { width: 23px; height: 23px; }
+@keyframes row-in { from { opacity: 0; transform: translateX(-5px); } }

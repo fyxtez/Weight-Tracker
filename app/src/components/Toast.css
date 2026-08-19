@@ -1,0 +1,1 @@
+.toast { position: fixed; left: 50%; bottom: 91px; z-index: 20; transform: translateX(-50%); width: max-content; max-width: calc(100% - 36px); padding: 11px 16px; color: #102016; background: var(--success); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.35); font-size: 12px; font-weight: 700; overflow-wrap: anywhere; text-align: center; }

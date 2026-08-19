@@ -1,0 +1,15 @@
+.food-card { padding: 16px; }
+.hide-progress { height: 3px; margin: 13px 2px -5px; background: var(--accent); border-radius: 999px; transform-origin: right center; animation: hide-countdown 7s linear forwards; }
+/* Feature: The bar disappears from left to right during the shared seven-second correction window. */
+@keyframes hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.food-title { display: flex; align-items: center; gap: 12px; }
+.food-title h2 { margin: 0; font-size: 16px; }
+.food-title p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
+.common-button { display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; color: var(--text-muted); background: #171715; border: 1px solid #30302d; border-radius: 11px; font-size: 19px; transition: color .15s ease, border-color .15s ease, background .15s ease; }
+.common-button:hover { color: var(--accent-light); border-color: #65532c; }
+.common-button.active { color: #17120a; background: var(--accent); border-color: var(--accent); }
+.common-food { border-color: #5c4b28; }
+.common-empty { padding: 28px 20px; color: var(--text-muted); text-align: center; font-size: 13px; }
+.amount-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(66px,1fr)); gap: 8px; margin-top: 14px; }
+.amount-chip { min-width: 0; }
+.food-copy { min-width: 0; flex: 1; }

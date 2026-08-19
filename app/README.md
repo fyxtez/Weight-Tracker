@@ -1,7 +1,12 @@
-# Tauri + React + Typescript
+# Weight Tracker client
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+React + TypeScript UI packaged with Tauri for Android and desktop. The client uses a local cache for responsive/offline operation and synchronizes authenticated day records with the Rust API.
 
-## Recommended IDE Setup
+```bash
+npm install
+npm run dev       # browser
+npm run tauri dev # native desktop
+npm run build     # TypeScript + Vite production build
+```
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+Frontend code is organized into `components`, `hooks`, and `domain` modules. Native code in `src-tauri` is intentionally small and only handles platform-specific integration such as CSV export.

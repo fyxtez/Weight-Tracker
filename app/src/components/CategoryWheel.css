@@ -1,0 +1,18 @@
+/* Feature: The radial category selector keeps common groups prominent while Rare remains deliberately smaller. */
+.category-wheel { position: relative; width: min(100%, 420px); aspect-ratio: 1; margin: 0 auto; border: 1px solid #292925; border-radius: 50%; background: radial-gradient(circle, rgba(245,166,35,.13) 0 17%, transparent 18% 51%, rgba(245,166,35,.04) 52% 53%, transparent 54%), #0e0e0d; box-shadow: inset 0 0 55px rgba(0,0,0,.55), 0 18px 50px rgba(0,0,0,.2); }
+.category-wheel { animation: wheel-enter .45s both cubic-bezier(.2,.8,.2,1); }
+@keyframes wheel-enter { from { opacity: 0; transform: scale(.94) rotate(-2deg); } }
+.category-wheel::before { content: ""; position: absolute; inset: 14%; border: 1px solid #302b20; border-radius: 50%; pointer-events: none; }
+.category-core { position: absolute; left: 50%; top: 50%; display: grid; width: clamp(96px,28vw,118px); aspect-ratio: 1; place-content: center; gap: 5px; transform: translate(-50%,-50%); color: var(--text); text-align: center; border: 1px solid #7a5a21; border-radius: 50%; background: linear-gradient(145deg,#211a0f,#0b0b0a); box-shadow: 0 0 30px rgba(245,166,35,.13); transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.category-core:hover { transform: translate(-50%,-50%) scale(1.05); border-color: var(--accent); background: linear-gradient(145deg,#302312,#11100d); }
+.category-core span { color: var(--accent); font-size: 23px; line-height: 1; }
+.category-core strong { font-size: 15px; }
+.category-button { position: absolute; display: grid; width: clamp(76px,23vw,96px); aspect-ratio: 1; place-content: center; gap: 4px; transform: translate(-50%,-50%); color: var(--text); background: linear-gradient(145deg,#20201d,#111110); border: 1px solid #494035; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,.35); transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.category-button, .category-core { animation: category-pop .36s both cubic-bezier(.2,.9,.25,1.15); }
+@keyframes category-pop { from { opacity: 0; transform: translate(-50%,-50%) scale(.78); } }
+.category-button:hover { transform: translate(-50%,-50%) scale(1.05); border-color: var(--accent); background: linear-gradient(145deg,#2a2419,#131311); }
+.category-button span { font-size: 25px; line-height: 1; }
+.category-button strong { font-size: 12px; }
+.category-button.rare { width: clamp(58px,17vw,68px); color: var(--text-secondary); border-color: #343431; }
+.category-button.rare span { color: var(--accent); font-size: 19px; }
+.category-button.rare strong { font-size: 10px; }

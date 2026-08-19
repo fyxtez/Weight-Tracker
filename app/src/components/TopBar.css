@@ -1,0 +1,6 @@
+.topbar { min-height: 104px; display: flex; align-items: flex-end; justify-content: space-between; padding: 28px 2px 16px; }
+.topbar h1 { margin: 2px 0 0; font-size: 28px; line-height: 1.15; }
+.sync-state { color: var(--text-muted); font-size: 10px; }
+/* Fix: Successful autosave is intentionally silent; only transient or actionable sync states remain visible. */
+.sync-state.saving { color: var(--accent); }
+.sync-state.offline { color: #f87171; }

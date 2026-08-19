@@ -1,0 +1,14 @@
+.food-icon { display: grid; width: 44px; height: 44px; place-items: center; background: #1c1b18; border-radius: 12px; font-size: 24px; }
+.food-svg { width: 31px; height: 31px; overflow: visible; }
+.food-svg ellipse, .food-svg > path:first-child { fill: #82b947; stroke: #b8db79; stroke-width: 1.4; }
+.food-svg path:not(:first-child) { fill: none; stroke: #314f22; stroke-width: 1.5; stroke-linecap: round; }
+.spinach-icon > path:first-child { fill: #4f9f4f; stroke: #8ad36f; }
+.pumpkin-icon > path:first-child { fill: #d17a1d; stroke: #f5a623; }
+.pumpkin-icon ellipse { fill: #f0d18a; stroke: #fff0bd; }
+.pumpkin-icon path:not(:first-child) { stroke: #7f4515; }
+.fish-svg > path:first-child { stroke-width: 1.2; }
+.fish-svg path:not(:first-child) { stroke: rgba(255,255,255,.6); stroke-width: 1.2; }
+.fish-svg circle { fill: #f3f3f1; }
+.tuna-icon > path:first-child { fill: #5c91b6; stroke: #90c6dd; }
+.sardine-icon > path:first-child { fill: #b7a76c; stroke: #e2d399; }
+.hake-icon > path:first-child { fill: #788b91; stroke: #b8c8cc; }
