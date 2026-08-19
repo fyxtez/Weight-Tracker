@@ -34,3 +34,9 @@
 .hide-progress { height: 3px; margin: 13px 2px -5px; background: var(--accent); border-radius: 999px; transform-origin: right center; animation: hide-countdown 7s linear forwards; }
 /* Feature: The bar disappears from left to right during the shared seven-second correction window. */
 @keyframes hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Feature: Workout chips own their countdown bar so each selected activity can disappear independently after seven seconds. */
+.workout-chip { position: relative; overflow: hidden; }
+.workout-chip > span:first-child { position: relative; z-index: 1; }
+.workout-hide-progress { position: absolute; right: 0; bottom: 0; left: 0; height: 3px; background: #17120a; transform-origin: right center; animation: workout-hide-countdown 7s linear forwards; }
+@keyframes workout-hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }

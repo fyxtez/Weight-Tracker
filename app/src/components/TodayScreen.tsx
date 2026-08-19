@@ -3,7 +3,66 @@ import { round } from "../domain/tracker";
 import { CompletedDailyField } from "./CompletedDailyField";
 import { Stat } from "./Stat";
 import "./TodayScreen.css";
-const WORKOUTS = ["Šetnja", "Ramena", "Trapezius", "Grudi", "Leđa", "Biceps", "Triceps", "Podlaktica", "Stomak", "Noge", "Gluteus"];
-export function TodayScreen({ controller: c }: {
-    controller: TrackerController;
-}) { return <div className="screen-grid">{c.collapsedOneTimeFields.weight ? <CompletedDailyField label="Jutarnja težina" value={`${c.draft.weight?.toFixed(1) ?? "—"} kg`} onEdit={() => c.revealOneTimeField("weight")}/> : <section className="card weight-card daily-entry-card"><span className="section-label">Jutarnja težina</span><div className="weight-entry"><input aria-label="Jutarnja težina" inputMode="decimal" value={c.weightInput} onChange={(event) => c.updateWeight(event.target.value)} placeholder="104.6"/><span>kg</span></div>{c.oneTimeCountdowns.weight > 0 && <div key={`weight-${c.oneTimeCountdowns.weight}`} className="hide-progress daily-hide-progress" aria-label="Jutarnja težina će se sklopiti za sedam sekundi"/>}</section>}{c.collapsedOneTimeFields.sleep ? <CompletedDailyField label="San protekle noći" value={c.draft.sleep || "—"} onEdit={() => c.revealOneTimeField("sleep")}/> : <section className="card compact-card daily-entry-card"><span className="section-label">San protekle noći</span><div className="chip-row">{["<6h", "6h", "7h", "8h+"].map((sleep) => <button key={sleep} className={`chip ${c.draft.sleep === sleep ? "selected" : ""}`} onClick={() => c.updateSleep(sleep)}>{sleep}</button>)}</div>{c.oneTimeCountdowns.sleep > 0 && <div key={`sleep-${c.oneTimeCountdowns.sleep}`} className="hide-progress daily-hide-progress" aria-label="San protekle noći će se sklopiti za sedam sekundi"/>}</section>}<section className="card compact-card"><div className="section-heading"><span className="section-label">Trening danas</span><span className="helper-inline">izaberi više</span></div><div className="chip-row workout-row">{WORKOUTS.map((workout) => <button key={workout} className={`chip ${c.draft.workout.includes(workout) ? "selected" : ""}`} onClick={() => c.toggleWorkout(workout)}>{workout}</button>)}</div></section><section className="card summary-card"><div className="card-heading"><span className="section-label">Sažetak danas</span><button className="text-button" onClick={() => c.setTab("food")}>Dodaj hranu →</button></div><div className="stats-grid"><Stat label="Namirnice" value={c.draft.foods.length.toString()} suffix="stavki"/><Stat label="Kalorije" value={round(c.nutrition.kcal).toLocaleString("sr-RS")} suffix="kcal"/><Stat label="Protein" value={round(c.nutrition.protein).toString()} suffix="g"/></div></section></div>; }
+
+export function TodayScreen({ controller: c }: { controller: TrackerController }) {
+    return <div className="screen-grid">
+        {c.collapsedOneTimeFields.weight ? <CompletedDailyField
+            label="Jutarnja težina"
+            value={`${c.draft.weight?.toFixed(1) ?? "—"} kg`}
+            onEdit={() => c.revealOneTimeField("weight")}
+        /> : <section className="card weight-card daily-entry-card">
+            <span className="section-label">Jutarnja težina</span>
+            <div className="weight-entry">
+                <input aria-label="Jutarnja težina" inputMode="decimal" value={c.weightInput} onChange={(event) => c.updateWeight(event.target.value)} placeholder="104.6"/>
+                <span>kg</span>
+            </div>
+            {c.oneTimeCountdowns.weight > 0 && <div key={`weight-${c.oneTimeCountdowns.weight}`} className="hide-progress daily-hide-progress" aria-label="Jutarnja težina će se sklopiti za sedam sekundi"/>}
+        </section>}
+
+        {c.collapsedOneTimeFields.sleep ? <CompletedDailyField
+            label="San protekle noći"
+            value={c.draft.sleep || "—"}
+            onEdit={() => c.revealOneTimeField("sleep")}
+        /> : <section className="card compact-card daily-entry-card">
+            <span className="section-label">San protekle noći</span>
+            <div className="chip-row">
+                {["<6h", "6h", "7h", "8h+"].map((sleep) => <button key={sleep} className={`chip ${c.draft.sleep === sleep ? "selected" : ""}`} onClick={() => c.updateSleep(sleep)}>{sleep}</button>)}
+            </div>
+            {c.oneTimeCountdowns.sleep > 0 && <div key={`sleep-${c.oneTimeCountdowns.sleep}`} className="hide-progress daily-hide-progress" aria-label="San protekle noći će se sklopiti za sedam sekundi"/>}
+        </section>}
+
+        <section className="card compact-card">
+            <div className="section-heading">
+                <span className="section-label">Trening danas</span>
+                <span className="helper-inline">mišići se vraćaju posle 4 dana</span>
+            </div>
+            <div className="chip-row workout-row">
+                {c.availableWorkouts.map((workout) => {
+                    const selected = c.draft.workout.includes(workout);
+                    const pendingHide = c.pendingHideWorkouts.includes(workout);
+                    return <button
+                        key={workout}
+                        className={`chip workout-chip ${selected ? "selected" : ""} ${pendingHide ? "pending-hide" : ""}`}
+                        onClick={() => c.toggleWorkout(workout)}
+                    >
+                        <span>{workout}</span>
+                        {/* Feature: The same visible seven-second timer used elsewhere shows when a completed workout choice will disappear. */}
+                        {pendingHide && <span className="workout-hide-progress" aria-hidden="true"/>}
+                    </button>;
+                })}
+            </div>
+        </section>
+
+        <section className="card summary-card">
+            <div className="card-heading">
+                <span className="section-label">Sažetak danas</span>
+                <button className="text-button" onClick={() => c.setTab("food")}>Dodaj hranu →</button>
+            </div>
+            <div className="stats-grid">
+                <Stat label="Namirnice" value={c.draft.foods.length.toString()} suffix="stavki"/>
+                <Stat label="Kalorije" value={round(c.nutrition.kcal).toLocaleString("sr-RS")} suffix="kcal"/>
+                <Stat label="Protein" value={round(c.nutrition.protein).toString()} suffix="g"/>
+            </div>
+        </section>
+    </div>;
+}

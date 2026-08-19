@@ -8,6 +8,14 @@ export const todayKey = (date = new Date()) => {
 };
 export const emptyRecord = (date: string): DayRecord => ({ date, weight: null, sleep: "", workout: [], foods: [], savedAt: new Date().toISOString() });
 export const round = (value: number, decimals = 0) => Number(value.toFixed(decimals));
+
+// Feature: Date-only workout cooldowns use stable UTC-noon arithmetic so DST changes cannot shift a Serbia calendar day.
+export const daysAgoKey = (dateKey: string, days: number) => {
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const date = new Date(Date.UTC(year, month - 1, day, 12));
+    date.setUTCDate(date.getUTCDate() - days);
+    return date.toISOString().slice(0, 10);
+};
 export const formatDate = (date: string) => new Intl.DateTimeFormat("sr-Latn-RS", { timeZone: SERBIA_TIME_ZONE, day: "numeric", month: "short" }).format(new Date(`${date}T12:00:00Z`));
 export const hasRecordContent = (record: DayRecord) => record.weight !== null || Boolean(record.sleep) || record.workout.length > 0 || record.foods.length > 0;
 // Nutrition is derived from preset portions so reports never depend on repeated manual calorie entry.

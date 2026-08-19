@@ -5,6 +5,9 @@ export const SERBIA_TIME_ZONE = "Europe/Belgrade";
 export const DEFAULT_WALKING_STEPS = 6000;
 export const COMMON_FOODS_KEY = "fyxtez-weight-tracker-pinned-foods-v1";
 export const AUTO_HIDE_DELAY_MS = 7000;
+// Feature: Muscle groups stay out of the picker for four calendar days, while walking remains a daily-only activity.
+export const WORKOUT_COOLDOWN_DAYS = 4;
+export const WORKOUTS = ["Šetnja", "Ramena", "Trapezius", "Grudi", "Leđa", "Biceps", "Triceps", "Podlaktica", "Stomak", "Noge", "Gluteus"] as const;
 export const CATEGORIES: Array<{
     id: CategoryId;
     name: string;
