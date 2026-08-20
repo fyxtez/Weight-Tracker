@@ -204,7 +204,8 @@ export function useTrackerController() {
             // Feature: A newly checked activity remains visible only during its seven-second correction window.
             if (pendingHideWorkouts.includes(workout))
                 return true;
-            if (workout === "Šetnja")
+            // Feature: Walking and Rest day are daily statuses, not muscle groups, so they never enter the four-day muscle cooldown.
+            if (workout === "Šetnja" || workout === "Rest day")
                 return !draft.workout.includes(workout);
             return !blocked.has(workout);
         });
@@ -289,9 +290,28 @@ export function useTrackerController() {
             setDraft((current) => ({ ...current, workout: current.workout.filter((item) => item !== workout) }));
             return;
         }
-        // Feature: Training selections autosave immediately but remain visible for seven seconds so accidental taps can be undone.
-        setDraft((current) => ({ ...current, workout: [...current.workout, workout] }));
-        setPendingHideWorkouts((current) => [...current.filter((item) => item !== workout), workout]);
+        // Feature: Rest day is mutually exclusive with actual exercise; choosing it clears today's activities, while choosing exercise clears Rest day.
+        setDraft((current) => ({
+            ...current,
+            workout: workout === "Rest day"
+                ? ["Rest day"]
+                : [...current.workout.filter((item) => item !== "Rest day"), workout],
+        }));
+        if (workout === "Rest day") {
+            // Fix: Pending seven-second timers for replaced workout choices are cancelled so cleared muscles cannot disappear or mutate UI later.
+            Object.entries(workoutHideTimers.current).forEach(([item, timerId]) => {
+                if (item !== "Rest day") window.clearTimeout(timerId);
+            });
+            workoutHideTimers.current = {};
+            // Feature: Rest day keeps the same seven-second correction window as every other workout choice.
+            setPendingHideWorkouts(["Rest day"]);
+        }
+        else {
+            // Fix: Selecting a real activity after Rest day also removes any pending Rest-day correction state.
+            if (workoutHideTimers.current["Rest day"]) window.clearTimeout(workoutHideTimers.current["Rest day"]);
+            delete workoutHideTimers.current["Rest day"];
+            setPendingHideWorkouts((current) => [...current.filter((item) => item !== workout && item !== "Rest day"), workout]);
+        }
         workoutHideTimers.current[workout] = window.setTimeout(() => {
             setPendingHideWorkouts((current) => current.filter((item) => item !== workout));
             delete workoutHideTimers.current[workout];

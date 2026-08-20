@@ -3,3 +3,6 @@
 .bottom-nav button span { font-size: 24px; line-height: 1; }
 .bottom-nav button:hover { color: var(--text-secondary); background: #161614; }
 .bottom-nav button.active { color: var(--accent); }
+
+/* Feature: The Food glyph is intentionally larger than the other nav glyphs because its circular mark looked optically undersized on Android. */
+.bottom-nav button[data-tab="food"] span { font-size: 30px; transform: scale(1.08); }

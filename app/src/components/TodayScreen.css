@@ -13,6 +13,10 @@
 .helper-inline { color: var(--text-muted); font-size: 10px; }
 .chip-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-top: 12px; }
 .workout-row { grid-template-columns: repeat(3,1fr); }
+/* Feature: Muscle icons get their own vertical space so labels remain readable instead of crowding the training chips. */
+.workout-chip { min-height: 76px; padding: 8px 6px; }
+.workout-chip-content { position: relative; z-index: 1; display: grid; place-items: center; gap: 4px; line-height: 1.1; }
+.workout-chip-content > span { font-size: 11px; }
 .chip { min-height: 42px; padding: 8px 10px; color: var(--text-secondary); background: #151515; border: 1px solid #3a3a36; border-radius: 11px; transition: color .15s ease, border-color .15s ease, background .15s ease; }
 .chip:hover { color: var(--text); border-color: #64645e; }
 .chip.selected { color: #17120a; background: var(--accent); border-color: var(--accent); font-weight: 700; }

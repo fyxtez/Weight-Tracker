@@ -5,7 +5,8 @@
 .back-button { min-height: 40px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 12px; font-weight: 700; }
 .back-button:hover { color: #17120a; background: var(--accent-light); border-color: var(--accent-light); }
 .food-card { padding: 16px; }
-.hidden-food-toggle { justify-self: end; min-height: 38px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 11px; font-weight: 700; }
+/* Feature: The same prominent daily-food control is shown directly under nutrition totals on the root Food screen and inside categories. */
+.hidden-food-toggle { justify-self: stretch; width: 100%; min-height: 38px; padding: 0 13px; color: var(--accent); background: #181714; border: 1px solid #493b22; border-radius: 11px; font-size: 11px; font-weight: 700; }
 .hidden-food-toggle:hover, .hidden-food-toggle.active { color: #17120a; background: var(--accent-light); border-color: var(--accent-light); }
 .hidden-food-section { display: grid; gap: 12px; padding-top: 4px; }
 /* Feature: Today's complete intake opens in a separate tray and never changes the order of the active category list. */

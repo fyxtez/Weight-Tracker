@@ -34,7 +34,16 @@ export function FoodScreen({ controller: c }: { controller: TrackerController })
                     : "U ovoj kategoriji nema vidljivih namirnica."}
             </div>}
 
-            {c.todayFoods.length > 0 && <section className={`hidden-food-section ${c.showTodayFoods ? "open" : ""}`}>
+
+        </>}
+
+        <div className="food-totals">
+            <strong>{round(c.nutrition.kcal).toLocaleString("sr-RS")} kcal</strong>
+            <span>{round(c.nutrition.protein)} g proteina</span>
+        </div>
+
+        {/* Fix: The daily-food tray now lives below totals at the Food-tab level, so it is available both in Categories and inside any category. */}
+<section className={`hidden-food-section ${c.showTodayFoods ? "open" : ""}`}>
                 {/* Fix: This control represents the complete daily intake, not category-specific hidden/completed cards. */}
                 <button
                     className={`hidden-food-toggle ${c.showTodayFoods ? "active" : ""}`}
@@ -43,7 +52,7 @@ export function FoodScreen({ controller: c }: { controller: TrackerController })
                 >
                     {c.showTodayFoods ? "Sakrij šta sam danas jeo" : `Šta sam danas jeo (${c.todayFoods.length})`}
                 </button>
-                {c.showTodayFoods && <div className="hidden-food-panel">
+                {c.showTodayFoods && (c.todayFoods.length > 0 ? <div className="hidden-food-panel">
                     <div className="hidden-food-heading">
                         <span className="eyebrow">DANAŠNJI UNOS</span>
                         <strong>Sve što sam danas jeo</strong>
@@ -60,13 +69,7 @@ export function FoodScreen({ controller: c }: { controller: TrackerController })
                             onCommon={c.toggleCommonFood}
                         />)}
                     </div>
-                </div>}
-            </section>}
-        </>}
-
-        <div className="food-totals">
-            <strong>{round(c.nutrition.kcal).toLocaleString("sr-RS")} kcal</strong>
-            <span>{round(c.nutrition.protein)} g proteina</span>
-        </div>
+                </div> : <div className="card common-empty">Danas još nema unete hrane.</div>)}
+            </section>
     </div>;
 }

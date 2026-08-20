@@ -2,6 +2,7 @@ import type { TrackerController } from "../hooks/useTrackerController";
 import { round } from "../domain/tracker";
 import { CompletedDailyField } from "./CompletedDailyField";
 import { Stat } from "./Stat";
+import { WorkoutIcon } from "./WorkoutIcon";
 import "./TodayScreen.css";
 
 export function TodayScreen({ controller: c }: { controller: TrackerController }) {
@@ -46,7 +47,8 @@ export function TodayScreen({ controller: c }: { controller: TrackerController }
                         className={`chip workout-chip ${selected ? "selected" : ""} ${pendingHide ? "pending-hide" : ""}`}
                         onClick={() => c.toggleWorkout(workout)}
                     >
-                        <span>{workout}</span>
+                        {/* Feature: Each workout choice now pairs its label with a muscle-specific icon for faster visual scanning. */}
+                        <span className="workout-chip-content"><WorkoutIcon workout={workout}/><span>{workout}</span></span>
                         {/* Feature: The same visible seven-second timer used elsewhere shows when a completed workout choice will disappear. */}
                         {pendingHide && <span className="workout-hide-progress" aria-hidden="true"/>}
                     </button>;

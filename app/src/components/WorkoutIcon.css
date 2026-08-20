@@ -1,0 +1,16 @@
+/* Feature: Anatomy icons use a muted body silhouette plus a high-contrast muscle overlay so each target remains readable at selection and history sizes. */
+.workout-icon { display: block; flex: 0 0 auto; overflow: visible; }
+.workout-icon.medium { width: 42px; height: 42px; }
+.workout-icon.small { width: 29px; height: 29px; }
+.workout-icon-body { fill: #555650; }
+.workout-icon-body-stroke { fill: none; stroke: #74756e; stroke-width: 4.2; stroke-linecap: round; stroke-linejoin: round; }
+.workout-icon-anatomy-line { fill: none; stroke: #73746d; stroke-width: 1.35; stroke-linecap: round; opacity: .78; }
+.workout-icon-highlight { fill: var(--accent); stroke: var(--accent); stroke-width: .9; stroke-linecap: round; stroke-linejoin: round; }
+.workout-icon-highlight-detail { fill: none; stroke: #17120a; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; opacity: .68; }
+
+/* Fix: Selected chips invert both the silhouette and target area so the anatomy remains visible on the yellow selected background. */
+.chip.selected .workout-icon-body { fill: rgba(23,18,10,.48); }
+.chip.selected .workout-icon-body-stroke { stroke: rgba(23,18,10,.62); }
+.chip.selected .workout-icon-anatomy-line { stroke: rgba(23,18,10,.55); }
+.chip.selected .workout-icon-highlight { fill: #17120a; stroke: #17120a; }
+.chip.selected .workout-icon-highlight-detail { stroke: var(--accent); opacity: .8; }

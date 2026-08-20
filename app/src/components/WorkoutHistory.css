@@ -1,13 +1,25 @@
-/* Feature: Monthly workout history is a focused overlay so the Today screen stays fast for daily entry. */
-.workout-history-backdrop { position: fixed; inset: 0; z-index: 80; display: grid; align-items: end; padding: max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)); background: rgba(0,0,0,.72); backdrop-filter: blur(8px); }
-.workout-history { width: min(100%,720px); max-height: min(82vh,760px); margin: 0 auto; padding: 18px; overflow: hidden; color: var(--text); background: #101010; border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
-.workout-history header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-.workout-history h2 { margin: 4px 0 0; font-size: 22px; text-transform: capitalize; }
-.workout-history-close { display: grid; width: 40px; height: 40px; place-items: center; color: var(--text-secondary); background: #1a1a18; border: 1px solid #343430; border-radius: 12px; font-size: 24px; }
-.workout-history-scroll { max-height: 52vh; margin-bottom: 14px; overflow: auto; border: 1px solid var(--border); border-radius: 14px; }
-.workout-history table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.workout-history th, .workout-history td { padding: 12px; text-align: left; vertical-align: top; border-bottom: 1px solid #252523; }
-.workout-history th { position: sticky; top: 0; color: var(--text-secondary); background: #151515; font-size: 11px; }
-.workout-history tbody tr:last-child td { border-bottom: 0; }
-.workout-history td:first-child { width: 43%; color: var(--text-secondary); text-transform: capitalize; }
-.workout-history-empty { margin: 24px 0; color: var(--text-muted); text-align: center; }
+.workout-history-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; align-items: end; justify-items: center; padding: max(14px,env(safe-area-inset-top)) 0 0; background: rgba(0,0,0,.72); backdrop-filter: blur(10px); }
+.workout-history { width: min(100%,760px); max-height: min(84vh,760px); display: grid; gap: 18px; overflow-y: auto; padding: 22px max(18px,env(safe-area-inset-right)) calc(22px + env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left)); background: #10100f; border: 1px solid #33332f; border-radius: 28px 28px 0 0; box-shadow: 0 -20px 60px rgba(0,0,0,.5); }
+.workout-history header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.workout-history header h2 { margin: 5px 0 0; font-size: 28px; text-transform: capitalize; }
+.workout-history-close { width: 52px; height: 52px; flex: 0 0 52px; color: var(--text-secondary); background: #1a1a18; border: 1px solid #393934; border-radius: 16px; font-size: 28px; }
+.workout-history-empty { padding: 30px 18px; color: var(--text-muted); background: #151513; border: 1px solid #30302c; border-radius: 16px; text-align: center; }
+/* Fix: Day rows wrap muscle badges inside the screen width instead of requiring a horizontally scrollable second column. */
+.workout-history-days { display: grid; gap: 10px; }
+.workout-history-day { display: grid; grid-template-columns: minmax(118px, .7fr) minmax(0, 1.8fr); gap: 14px; padding: 13px; background: #151513; border: 1px solid #30302c; border-radius: 16px; }
+.workout-history-date { display: grid; align-content: center; gap: 4px; min-width: 0; }
+.workout-history-date > span { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.workout-history-date strong { font-size: 12px; line-height: 1.35; text-transform: capitalize; }
+/* Feature: Muscle badges combine icon + label and wrap naturally, keeping every recorded group visible without side scrolling. */
+.workout-history-muscles { min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.workout-history-muscle { display: inline-flex; min-width: 0; align-items: center; gap: 5px; padding: 5px 7px 5px 5px; color: var(--text-secondary); background: #1c1c19; border: 1px solid #373731; border-radius: 10px; }
+.workout-history-muscle span { font-size: 10px; white-space: nowrap; }
+@media (max-width: 460px) {
+    .workout-history { max-height: 86vh; gap: 14px; padding-top: 18px; border-radius: 24px 24px 0 0; }
+    .workout-history header h2 { font-size: 25px; }
+    .workout-history-close { width: 46px; height: 46px; flex-basis: 46px; }
+    /* Fix: Very narrow Android screens stack date and muscle groups so no content can be clipped off-screen. */
+    .workout-history-day { grid-template-columns: 1fr; gap: 9px; }
+    .workout-history-date { grid-template-columns: auto 1fr; align-items: baseline; gap: 8px; }
+    .workout-history-date strong { font-size: 12px; }
+}
