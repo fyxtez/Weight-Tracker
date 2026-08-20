@@ -44,6 +44,7 @@ export function useTrackerController() {
     const [pendingHideWorkouts, setPendingHideWorkouts] = useState<string[]>([]);
     const [showExportActions, setShowExportActions] = useState(false);
     const [showReportPreview, setShowReportPreview] = useState(false);
+    const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
     const [collapsedOneTimeFields, setCollapsedOneTimeFields] = useState<Record<OneTimeField, boolean>>({ weight: draft.weight !== null, sleep: Boolean(draft.sleep) });
     const [oneTimeCountdowns, setOneTimeCountdowns] = useState<Record<OneTimeField, number>>({ weight: 0, sleep: 0 });
     const [serverReady, setServerReady] = useState(false);
@@ -116,8 +117,12 @@ export function useTrackerController() {
         return () => window.cancelAnimationFrame(frameId);
     }, [showExportActions]);
     useEffect(() => {
-        // Feature: Android's system Back button and edge-back gesture close an open food category before the app can exit.
-        const handleSystemBack = () => setSelectedCategory(null);
+        // Fix: Android Back/edge gestures and visible Close buttons share browser-history layers for categories and modal screens.
+        const handleSystemBack = () => {
+            setSelectedCategory(null);
+            setShowReportPreview(false);
+            setShowWorkoutHistory(false);
+        };
         window.addEventListener("popstate", handleSystemBack);
         return () => window.removeEventListener("popstate", handleSystemBack);
     }, []);
@@ -167,6 +172,10 @@ export function useTrackerController() {
     const nutrition = useMemo(() => calculateNutrition(draft), [draft]);
     const sortedRecords = useMemo(() => [...records].sort((a, b) => b.date.localeCompare(a.date)), [records]);
     const reportRecords = sortedRecords.slice(0, 7);
+    // Feature: The training table reads the current Serbia calendar month from existing per-day workout history; no duplicate storage is needed.
+    const currentMonthPrefix = draft.date.slice(0, 7);
+    const workoutHistoryRecords = sortedRecords.filter((record) => record.date.startsWith(currentMonthPrefix) && record.workout.length > 0);
+    const workoutHistoryMonthLabel = new Intl.DateTimeFormat("sr-Latn-RS", { timeZone: "Europe/Belgrade", month: "long", year: "numeric" }).format(new Date(`${draft.date.slice(0, 7)}-15T12:00:00Z`));
     const weightedRecords = reportRecords.filter((record) => record.weight !== null);
     const averageWeight = weightedRecords.length ? weightedRecords.reduce((sum, record) => sum + (record.weight ?? 0), 0) / weightedRecords.length : null;
     const weightChange = weightedRecords.length > 1 ? (weightedRecords[0].weight ?? 0) - (weightedRecords[weightedRecords.length - 1].weight ?? 0) : null;
@@ -305,6 +314,27 @@ export function useTrackerController() {
         else
             setSelectedCategory(null);
     }
+
+    function openReportPreview() {
+        // Feature: Report preview gets its own history layer so Android edge-back and the visible Close button perform the same action.
+        window.history.pushState({ ...window.history.state, weightTrackerLayer: "report-preview" }, "");
+        setShowReportPreview(true);
+    }
+    function closeReportPreview() {
+        // Fix: Consume the report's temporary history entry instead of only hiding UI, preventing a later Back gesture from closing the app unexpectedly.
+        if (window.history.state?.weightTrackerLayer === "report-preview") window.history.back();
+        else setShowReportPreview(false);
+    }
+    function openWorkoutHistory() {
+        // Feature: Monthly training history behaves like a native sub-screen and is dismissible with Android's edge-back gesture.
+        window.history.pushState({ ...window.history.state, weightTrackerLayer: "workout-history" }, "");
+        setShowWorkoutHistory(true);
+    }
+    function closeWorkoutHistory() {
+        // Fix: The visible table Close action follows the same history path as the system/gesture Back action.
+        if (window.history.state?.weightTrackerLayer === "workout-history") window.history.back();
+        else setShowWorkoutHistory(false);
+    }
     function buildReportFile() {
         // Feature: CSV is compact, human-readable, and directly analyzable when shared in chat.
         const header = ["datum", "tezina_kg", "san", "trening", "koraci", "namirnice_i_doprinos", "kcal_ukupno", "protein_g", "masti_g", "uh_ukupno_g", "vlakna_g", "neto_uh_g"];
@@ -359,9 +389,9 @@ export function useTrackerController() {
     return {
         tab, setTab, records, draft, weightInput, notice, selectedCategory, pendingHideFoods, pendingHideWorkouts,
         showTodayFoods, setShowTodayFoods, showExportActions, setShowExportActions,
-        showReportPreview, setShowReportPreview, collapsedOneTimeFields, oneTimeCountdowns, syncStatus: syncStatus as SyncStatus,
-        commonFoods, nutrition, sortedRecords, reportRecords, averageWeight, weightChange, averageCalories, categoryFoods, todayFoods, availableWorkouts,
-        revealOneTimeField, updateWeight, updateSleep, selectFood, toggleWorkout, toggleCommonFood, openFoodCategory, closeFoodCategory, shareReport, saveReport
+        showReportPreview, setShowReportPreview, showWorkoutHistory, collapsedOneTimeFields, oneTimeCountdowns, syncStatus: syncStatus as SyncStatus,
+        commonFoods, nutrition, sortedRecords, reportRecords, workoutHistoryRecords, workoutHistoryMonthLabel, averageWeight, weightChange, averageCalories, categoryFoods, todayFoods, availableWorkouts,
+        revealOneTimeField, updateWeight, updateSleep, selectFood, toggleWorkout, toggleCommonFood, openFoodCategory, closeFoodCategory, openReportPreview, closeReportPreview, openWorkoutHistory, closeWorkoutHistory, shareReport, saveReport
     };
 }
 export type TrackerController = ReturnType<typeof useTrackerController>;

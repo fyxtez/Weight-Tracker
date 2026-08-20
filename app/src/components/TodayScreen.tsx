@@ -34,8 +34,9 @@ export function TodayScreen({ controller: c }: { controller: TrackerController }
         <section className="card compact-card">
             <div className="section-heading">
                 <span className="section-label">Trening danas</span>
-                <span className="helper-inline">mišići se vraćaju posle 4 dana</span>
+                <button className="workout-history-button" onClick={c.openWorkoutHistory}>Pogledaj tabelu →</button>
             </div>
+            <span className="helper-inline workout-helper">mišići se vraćaju posle 4 dana</span>
             <div className="chip-row workout-row">
                 {c.availableWorkouts.map((workout) => {
                     const selected = c.draft.workout.includes(workout);

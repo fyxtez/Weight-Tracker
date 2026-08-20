@@ -1,0 +1,13 @@
+/* Feature: Monthly workout history is a focused overlay so the Today screen stays fast for daily entry. */
+.workout-history-backdrop { position: fixed; inset: 0; z-index: 80; display: grid; align-items: end; padding: max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left)); background: rgba(0,0,0,.72); backdrop-filter: blur(8px); }
+.workout-history { width: min(100%,720px); max-height: min(82vh,760px); margin: 0 auto; padding: 18px; overflow: hidden; color: var(--text); background: #101010; border: 1px solid var(--border); border-radius: 22px; box-shadow: 0 24px 80px rgba(0,0,0,.5); }
+.workout-history header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.workout-history h2 { margin: 4px 0 0; font-size: 22px; text-transform: capitalize; }
+.workout-history-close { display: grid; width: 40px; height: 40px; place-items: center; color: var(--text-secondary); background: #1a1a18; border: 1px solid #343430; border-radius: 12px; font-size: 24px; }
+.workout-history-scroll { max-height: 52vh; margin-bottom: 14px; overflow: auto; border: 1px solid var(--border); border-radius: 14px; }
+.workout-history table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.workout-history th, .workout-history td { padding: 12px; text-align: left; vertical-align: top; border-bottom: 1px solid #252523; }
+.workout-history th { position: sticky; top: 0; color: var(--text-secondary); background: #151515; font-size: 11px; }
+.workout-history tbody tr:last-child td { border-bottom: 0; }
+.workout-history td:first-child { width: 43%; color: var(--text-secondary); text-transform: capitalize; }
+.workout-history-empty { margin: 24px 0; color: var(--text-muted); text-align: center; }

@@ -40,3 +40,7 @@
 .workout-chip > span:first-child { position: relative; z-index: 1; }
 .workout-hide-progress { position: absolute; right: 0; bottom: 0; left: 0; height: 3px; background: #17120a; transform-origin: right center; animation: workout-hide-countdown 7s linear forwards; }
 @keyframes workout-hide-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Feature: The workout history entry point stays beside the Training heading while cooldown guidance remains secondary. */
+.workout-history-button { padding: 4px 0; color: var(--accent); background: transparent; font-size: 12px; font-weight: 700; }
+.workout-helper { display: block; margin-top: 5px; }

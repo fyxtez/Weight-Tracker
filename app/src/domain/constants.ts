@@ -2,7 +2,8 @@ import type { CategoryId, FoodDefinition } from "./types";
 // Persistence and day-boundary constants stay centralized so storage migrations are explicit.
 export const STORAGE_KEY = "fyxtez-weight-tracker-authenticated-v2";
 export const SERBIA_TIME_ZONE = "Europe/Belgrade";
-export const DEFAULT_WALKING_STEPS = 6000;
+// Feature: Walking is reported as a 7,000+ daily target instead of the old 6,000-step baseline.
+export const DEFAULT_WALKING_STEPS = 7000;
 export const COMMON_FOODS_KEY = "fyxtez-weight-tracker-pinned-foods-v1";
 export const AUTO_HIDE_DELAY_MS = 7000;
 // Feature: Muscle groups stay out of the picker for four calendar days, while walking remains a daily-only activity.
@@ -42,6 +43,7 @@ export const FOODS: FoodDefinition[] = [
     // Feature: Three shake portions cover unusually demanding training days without repeated manual entry.
     { id: "anabolic-shake", name: "Anabolički šejk", detail: "whey, kreatin, leucin, kakao", icon: "🥤", category: "rare", unit: "šejk", amounts: [1, 2, 3], per: 1, kcal: 205, protein: 42.5, fat: 2, carbs: 4.5, fiber: 1.7 },
     // Feature: Rare foods stay available for accurate exceptional days without crowding the primary menu.
+    // Feature: Pumpkin seeds keep quick presets but also accept exact custom grams in the food card.
     { id: "pumpkin-seeds", name: "Bundevine semenke", detail: "orašasti i semenke", icon: "🌰", category: "rare", unit: "g", amounts: [10, 20, 30, 40], per: 100, kcal: 559, protein: 30.2, fat: 49, carbs: 10.7, fiber: 6 },
     { id: "pecans", name: "Pekani", detail: "orašasti i semenke", icon: "🥜", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 691, protein: 9.2, fat: 72, carbs: 13.9, fiber: 9.6 },
     { id: "walnuts", name: "Orasi", detail: "orašasti i semenke", icon: "🌰", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 654, protein: 15.2, fat: 65.2, carbs: 13.7, fiber: 6.7 },
