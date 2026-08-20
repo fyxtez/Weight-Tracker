@@ -56,4 +56,6 @@ export const FOODS: FoodDefinition[] = [
     { id: "shrimp", name: "Škampe", detail: "bez ulja", icon: "🦐", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 99, protein: 24, fat: 0.3, carbs: 0.2, fiber: 0 },
     { id: "potato", name: "Krompir", detail: "kuvan", icon: "🥔", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 87, protein: 1.9, fat: 0.1, carbs: 20.1, fiber: 1.8 },
     { id: "rice", name: "Pirinač", detail: "kuvan", icon: "🍚", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 130, protein: 2.7, fat: 0.3, carbs: 28.2, fiber: 0.4 },
+    // Feature: Pirinač čips uses the photographed package label per 100 g, with 50 g steps matching one bag for accurate carb-refeed tracking.
+    { id: "rice-chips", name: "Pirinač čips", detail: "BBQ pirinčani krugovi", icon: "🍘", category: "rare", unit: "g", amounts: [50, 100, 150, 200], per: 100, kcal: 441, protein: 6.6, fat: 13.5, carbs: 72, fiber: 2.7 },
 ];

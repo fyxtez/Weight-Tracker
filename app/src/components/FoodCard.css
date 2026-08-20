@@ -18,4 +18,8 @@
 .custom-amount-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; margin-top: 9px; }
 .custom-amount-row input { width: 100%; min-height: 42px; padding: 0 12px; color: var(--text); background: #151515; border: 1px solid #3a3a36; border-radius: 11px; outline: 0; }
 .custom-amount-row input:focus { border-color: var(--accent); }
+/* Fix: Native number-input spinner arrows clashed with the custom field styling, so grams stay numeric while browser steppers are hidden. */
+.custom-amount-row input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.custom-amount-row input[type="number"]::-webkit-outer-spin-button,
+.custom-amount-row input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .custom-amount-button { min-height: 42px; padding: 0 16px; color: #17120a; background: var(--accent); border-radius: 11px; font-weight: 800; }
