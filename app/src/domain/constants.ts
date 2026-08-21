@@ -16,16 +16,16 @@ export const CATEGORIES: Array<{
     icon: string;
     rare?: boolean;
 }> = [
-    { id: "meat", name: "Meso", icon: "🥩" },
-    { id: "fish", name: "Riba", icon: "🐟" },
-    { id: "salad", name: "Salate", icon: "🥗" },
-    { id: "dairy", name: "Mlečno", icon: "🥛" },
-    // Feature: Nuts and seeds keep their own category so Ostalo contains only the requested miscellaneous foods.
-    { id: "nuts", name: "Orašasti", icon: "🌰" },
-    // Feature: Refeed/starch foods get a dedicated category so Ostalo can stay focused on occasional miscellaneous items.
-    { id: "carbs", name: "Karbovi", icon: "🍚" },
-    { id: "rare", name: "Ostalo", icon: "✦", rare: true },
-];
+        { id: "meat", name: "Meso", icon: "🥩" },
+        { id: "fish", name: "Riba", icon: "🐟" },
+        { id: "salad", name: "Salate", icon: "🥗" },
+        { id: "dairy", name: "Mlečno", icon: "🥛" },
+        // Feature: Nuts and seeds keep their own category so Ostalo contains only the requested miscellaneous foods.
+        { id: "nuts", name: "Orašasti", icon: "🌰" },
+        // Feature: Refeed/starch foods get a dedicated category so Ostalo can stay focused on occasional miscellaneous items.
+        { id: "carbs", name: "Karbovi", icon: "🍚" },
+        { id: "rare", name: "Ostalo", icon: "✦", rare: true },
+    ];
 // Nutrition presets are data, not component state, so they live in the domain layer.
 export const FOODS: FoodDefinition[] = [
     { id: "pork", name: "Crveno svinjsko meso", detail: "air fryer, bez ulja", icon: "🥩", category: "meat", unit: "g", amounts: [100, 150, 200, 250], per: 100, kcal: 242, protein: 27.3, fat: 13.9, carbs: 0, fiber: 0 },
@@ -62,8 +62,10 @@ export const FOODS: FoodDefinition[] = [
     // Feature: Carb-dense foods are grouped under Karbovi so potato, rice and packaged carb sources are easy to find together.
     { id: "potato", name: "Krompir", detail: "kuvan", icon: "🥔", category: "carbs", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 87, protein: 1.9, fat: 0.1, carbs: 20.1, fiber: 1.8 },
     { id: "rice", name: "Pirinač", detail: "kuvan", icon: "🍚", category: "carbs", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 130, protein: 2.7, fat: 0.3, carbs: 28.2, fiber: 0.4 },
+    // Feature: Banana uses one medium fruit as the nutrition unit, with quick presets for one, two, or three bananas.
+    { id: "banana", name: "Banana", detail: "srednja, oko 118 g", icon: "🍌", category: "carbs", unit: "kom", amounts: [1, 2, 3], per: 1, kcal: 105, protein: 1.3, fat: 0.4, carbs: 27, fiber: 3.1 },
     // Feature: Pirinač čips uses the photographed package label per 100 g, with 50 g steps matching one bag for accurate carb-refeed tracking.
     { id: "rice-chips", name: "Pirinač čips", detail: "BBQ pirinčani krugovi", icon: "🍘", category: "carbs", unit: "g", amounts: [50, 100, 150, 200], per: 100, kcal: 441, protein: 6.6, fat: 13.5, carbs: 72, fiber: 2.7 },
-    // Feature: Wellness Yes Protein Plus uses the label's 3-biscuit serving directly; 5/10/15-piece presets scale from it without per-cookie rounding drift.
-    { id: "wellness-yes-protein-plus", name: "Wellness Yes P Plus", detail: "čokolada i lešnik", icon: "🍪", category: "carbs", unit: "kom", amounts: [5, 10, 15], per: 3, kcal: 186, protein: 6.1, fat: 8.4, carbs: 20, fiber: 1.8 },
+    // Feature: Protein Plus presets now match exact multiples of the label's three-biscuit serving for accurate nutrition calculations.
+    { id: "wellness-yes-protein-plus", name: "Wellness Yes P Plus", detail: "čokolada i lešnik", icon: "🍪", category: "carbs", unit: "kom", amounts: [3, 6, 9], per: 3, kcal: 186, protein: 6.1, fat: 8.4, carbs: 20, fiber: 1.8 },
 ];
