@@ -20,6 +20,10 @@ export const CATEGORIES: Array<{
     { id: "fish", name: "Riba", icon: "🐟" },
     { id: "salad", name: "Salate", icon: "🥗" },
     { id: "dairy", name: "Mlečno", icon: "🥛" },
+    // Feature: Nuts and seeds keep their own category so Ostalo contains only the requested miscellaneous foods.
+    { id: "nuts", name: "Orašasti", icon: "🌰" },
+    // Feature: Refeed/starch foods get a dedicated category so Ostalo can stay focused on occasional miscellaneous items.
+    { id: "carbs", name: "Karbovi", icon: "🍚" },
     { id: "rare", name: "Ostalo", icon: "✦", rare: true },
 ];
 // Nutrition presets are data, not component state, so they live in the domain layer.
@@ -40,22 +44,26 @@ export const FOODS: FoodDefinition[] = [
     { id: "cucumber", name: "Krastavac", detail: "svež", icon: "🥒", category: "salad", unit: "g", amounts: [50, 100, 150, 200], per: 100, kcal: 15, protein: 0.7, fat: 0.1, carbs: 3.6, fiber: 0.5 },
     { id: "blue-cheese", name: "Plavi sir", detail: "punomasni", icon: "🧀", category: "dairy", unit: "g", amounts: [25, 33, 50, 75, 100], per: 100, kcal: 353, protein: 21.4, fat: 28.7, carbs: 2.3, fiber: 0 },
     { id: "imlek-yogurt", name: "Imlek jogurt", detail: "2.8% mlečne masti", icon: "🥛", category: "dairy", unit: "ml", amounts: [200, 300, 400, 500], per: 100, kcal: 55, protein: 3.1, fat: 2.8, carbs: 4.2, fiber: 0 },
-    // Fix: The shake remains available under Rare after removing the redundant Routine category and can still be moved to Common.
+    // Feature: The whey-based shake now lives under Mlečno instead of Ostalo while retaining the same nutrition and Common pin behavior.
     // Feature: Three shake portions cover unusually demanding training days without repeated manual entry.
-    { id: "anabolic-shake", name: "Anabolički šejk", detail: "whey, kreatin, leucin, kakao", icon: "🥤", category: "rare", unit: "šejk", amounts: [1, 2, 3], per: 1, kcal: 205, protein: 42.5, fat: 2, carbs: 4.5, fiber: 1.7 },
-    // Feature: Rare foods stay available for accurate exceptional days without crowding the primary menu.
+    { id: "anabolic-shake", name: "Anabolički šejk", detail: "whey, kreatin, leucin, kakao", icon: "🥤", category: "dairy", unit: "šejk", amounts: [1, 2, 3], per: 1, kcal: 205, protein: 42.5, fat: 2, carbs: 4.5, fiber: 1.7 },
     // Feature: Pumpkin seeds keep quick presets but also accept exact custom grams in the food card.
-    { id: "pumpkin-seeds", name: "Bundevine semenke", detail: "orašasti i semenke", icon: "🌰", category: "rare", unit: "g", amounts: [10, 20, 30, 40], per: 100, kcal: 559, protein: 30.2, fat: 49, carbs: 10.7, fiber: 6 },
-    { id: "pecans", name: "Pekani", detail: "orašasti i semenke", icon: "🥜", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 691, protein: 9.2, fat: 72, carbs: 13.9, fiber: 9.6 },
-    { id: "walnuts", name: "Orasi", detail: "orašasti i semenke", icon: "🌰", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 654, protein: 15.2, fat: 65.2, carbs: 13.7, fiber: 6.7 },
-    { id: "mixed-seeds", name: "Semenke", detail: "mešane", icon: "🌱", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 550, protein: 24, fat: 45, carbs: 18, fiber: 9 },
-    { id: "pistachios", name: "Pistaći", detail: "orašasti i semenke", icon: "🟢", category: "rare", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 562, protein: 20.2, fat: 45.3, carbs: 27.2, fiber: 10.6 },
+    // Feature: Nut and seed foods are grouped together instead of inflating Ostalo.
+    { id: "pumpkin-seeds", name: "Bundevine semenke", detail: "orašasti i semenke", icon: "🌰", category: "nuts", unit: "g", amounts: [10, 20, 30, 40], per: 100, kcal: 559, protein: 30.2, fat: 49, carbs: 10.7, fiber: 6 },
+    { id: "pecans", name: "Pekani", detail: "orašasti i semenke", icon: "🥜", category: "nuts", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 691, protein: 9.2, fat: 72, carbs: 13.9, fiber: 9.6 },
+    { id: "walnuts", name: "Orasi", detail: "orašasti i semenke", icon: "🌰", category: "nuts", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 654, protein: 15.2, fat: 65.2, carbs: 13.7, fiber: 6.7 },
+    { id: "mixed-seeds", name: "Semenke", detail: "mešane", icon: "🌱", category: "nuts", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 550, protein: 24, fat: 45, carbs: 18, fiber: 9 },
+    { id: "pistachios", name: "Pistaći", detail: "orašasti i semenke", icon: "🟢", category: "nuts", unit: "g", amounts: [10, 20, 30, 50], per: 100, kcal: 562, protein: 20.2, fat: 45.3, carbs: 27.2, fiber: 10.6 },
     { id: "blueberries", name: "Borovnice", detail: "sveže", icon: "🫐", category: "rare", unit: "g", amounts: [30, 50, 100, 200], per: 100, kcal: 57, protein: 0.7, fat: 0.3, carbs: 14.5, fiber: 2.4 },
     { id: "beet-juice", name: "Sok od cvekle", detail: "bez dodatog šećera", icon: "🧃", category: "rare", unit: "ml", amounts: [100, 200, 300, 500], per: 100, kcal: 43, protein: 1, fat: 0.1, carbs: 9.6, fiber: 0 },
     { id: "mushrooms", name: "Pečurke", detail: "bez ulja", icon: "🍄", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 22, protein: 3.1, fat: 0.3, carbs: 3.3, fiber: 1 },
-    { id: "shrimp", name: "Škampe", detail: "bez ulja", icon: "🦐", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 99, protein: 24, fat: 0.3, carbs: 0.2, fiber: 0 },
-    { id: "potato", name: "Krompir", detail: "kuvan", icon: "🥔", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 87, protein: 1.9, fat: 0.1, carbs: 20.1, fiber: 1.8 },
-    { id: "rice", name: "Pirinač", detail: "kuvan", icon: "🍚", category: "rare", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 130, protein: 2.7, fat: 0.3, carbs: 28.2, fiber: 0.4 },
+    // Feature: Shrimp belongs with the fish/seafood foods, leaving Ostalo with blueberries, beet juice and mushrooms only.
+    { id: "shrimp", name: "Škampe", detail: "bez ulja", icon: "🦐", category: "fish", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 99, protein: 24, fat: 0.3, carbs: 0.2, fiber: 0 },
+    // Feature: Carb-dense foods are grouped under Karbovi so potato, rice and packaged carb sources are easy to find together.
+    { id: "potato", name: "Krompir", detail: "kuvan", icon: "🥔", category: "carbs", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 87, protein: 1.9, fat: 0.1, carbs: 20.1, fiber: 1.8 },
+    { id: "rice", name: "Pirinač", detail: "kuvan", icon: "🍚", category: "carbs", unit: "g", amounts: [100, 200, 300], per: 100, kcal: 130, protein: 2.7, fat: 0.3, carbs: 28.2, fiber: 0.4 },
     // Feature: Pirinač čips uses the photographed package label per 100 g, with 50 g steps matching one bag for accurate carb-refeed tracking.
-    { id: "rice-chips", name: "Pirinač čips", detail: "BBQ pirinčani krugovi", icon: "🍘", category: "rare", unit: "g", amounts: [50, 100, 150, 200], per: 100, kcal: 441, protein: 6.6, fat: 13.5, carbs: 72, fiber: 2.7 },
+    { id: "rice-chips", name: "Pirinač čips", detail: "BBQ pirinčani krugovi", icon: "🍘", category: "carbs", unit: "g", amounts: [50, 100, 150, 200], per: 100, kcal: 441, protein: 6.6, fat: 13.5, carbs: 72, fiber: 2.7 },
+    // Feature: Wellness Yes Protein Plus uses the label's 3-biscuit serving directly; 5/10/15-piece presets scale from it without per-cookie rounding drift.
+    { id: "wellness-yes-protein-plus", name: "Wellness Yes P Plus", detail: "čokolada i lešnik", icon: "🍪", category: "carbs", unit: "kom", amounts: [5, 10, 15], per: 3, kcal: 186, protein: 6.1, fat: 8.4, carbs: 20, fiber: 1.8 },
 ];

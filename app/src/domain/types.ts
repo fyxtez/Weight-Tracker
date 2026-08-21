@@ -1,5 +1,6 @@
 export type Tab = "today" | "food" | "report";
-export type CategoryId = "meat" | "fish" | "salad" | "dairy" | "rare";
+// Feature: Dedicated nut/seed and carb categories keep Ostalo limited to true miscellaneous foods.
+export type CategoryId = "meat" | "fish" | "salad" | "dairy" | "nuts" | "carbs" | "rare";
 export type FoodView = CategoryId | "common";
 export type Nutrition = {
     kcal: number;
